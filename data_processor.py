@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 """
-@auth JASON ZHANG <gsangeryeee@gmail.com>
+@auth Jason Zhang <gsangeryeee@gmail.com>
 @brief: process data
         - a bunch of processing
         -
