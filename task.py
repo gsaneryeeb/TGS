@@ -1,365 +1,183 @@
 # -*- coding: utf-8 -*-
 """
 @auth Jason Zhang <gsangeryeee@gmail.com>
-@brief: definitions for
-        - learner & ensemble learner
-        - feature & stacking feature
-        - task & stacking task
-        - task optimizer
+@brief: 
 
 """
-import os
-import time
-from optparse import OptionParser
 
+import argparse
+import random
+import os
+from os.path import join
 import numpy as np
-import pandas as pd
-from hyperopt import fmin, tpe, hp, STATUS_OK, Trials, space_eval
+
+import torch
+import torch.backends.cudnn
 
 import config
-from utils import logging_utils, pkl_utils, eval_utils, time_utils
 
-from model_param_space import ModelParamSpace
+from utils import unet_utils
 
-class Learner:
-    def __init__(self, learner_name, param_dict):
-        self.learner_name = learner_name
-        self.param_dict = param_dict
-        self.learner = self.__get_learner()
 
-    def __str__(self):
-        return self.learner_name
 
-    def __get_learner(self):
-        #xgboost
-        if self.learner_name in ["reg_xgb_linear", "reg_xgb_tree_best_single_model"]:
-            return XGBRegressor(**self.param_dict)
-        # keras
-        if self.learner_name == "keras":
-            try:
-                return KerasDNNRegressor(**self.param_dict)
-            except:
-                return None
-        # pytorch
-        if self.learner_name == "pytorch":
-            return Pytorch(**self.param_dict)
+# -------------------------------main-------------------------------------
 
-        # ensemble
-        if self.learner_name == "ensemble":
-            return EnsembleLearner(**self.param_dict)
+def main():
+    parser = argparse.ArgumentParser(description='Kaggle TGS Competition')
+    parser.add_argument('-o', '--output_dir', default=None, help='output dir')
+    parser.add_argument('-b', '--batch_size', type=int, default=1, metavar='N',
+                        help='input batch size for training')
+    parser.add_argument('--epochs', type=int, default=400, help='number of epochs to train')
+    parser.add_argument('-lr', '--lr', type=float, default=0.01, metavar='LR',
+                        help='learning rate')
+    parser.add_argument('-reset_lr', '--reset_lr', action='store_true',
+                        help='should reset lr cycles? If not count epochs from 0')
+    parser.add_argument('-opt', '--optimizer', default='sgd', choices=['sgd', 'adam', 'rmsprop'],
+                        help='optimizer type')
+    parser.add_argument('--decay_step', type=float, default=100, metavar='EPOCHS',
+                        help='learning rate decay step')
+    parser.add_argument('--decay_gamma', type=float, default=0.5,
+                        help='learning rate decay coeeficient')
+    parser.add_argument('--cyclic_lr', type=int, default=None,
+                        help='(int)Len of the cycle. If not None use cyclic lr with cycle_len) specified')
+    parser.add_argument('--cyclic_duration', type=float, default=1.0,
+                        help='multiplier of the duration of segments in the cycle')
 
-        return None
+    parser.add_argument('--weight_decay', type=float, default=0.0005,
+                        help='L2 regularizer weight')
+    parser.add_argument('--seed', type=int, default=1993, help='random seed')
+    parser.add_argument('--log_aggr', type=int, default=None, metavar='N',
+                        help='how many batches to wait before logging training status')
+    parser.add_argument('-gacc', '--num_grad_acc_steps', type=int, default=1, metavar='N',
+                        help='number of vatches to accumulate gradients')
+    parser.add_argument('-imsize', '--image_size', type=int, default=1024, metavar='N',
+                        help='how many batches to wait before logging training status')
+    parser.add_argument('-f', '--fold', type=int, default=0, metavar='N',
+                        help='fold_id')
+    parser.add_argument('-nf', '--n_folds', type=int, default=0, metavar='N',
+                        help='number of folds')
+    parser.add_argument('-fv', '--folds_version', type=int, default=1, choices=[1, 2],
+                        help='version of folds (1) - random, (2) - stratified on mask area')
+    parser.add_argument('-group', '--group', type=parse_group, default='all',
+                        help='group id')
+    parser.add_argument('-no_cudnn', '--no_cudnn', action='store_true',
+                        help='dont use cudnn?')
+    parser.add_argument('-aug', '--aug', type=int, default=None,
+                        help='use augmentations?')
+    parser.add_argument('-no_hq', '--no_hq', action='store_true',
+                        help='do not use hq images?')
+    parser.add_argument('-dbg', '--dbg', action='store_true',
+                        help='is debug?')
+    parser.add_argument('-is_log_dice', '--is_log_dice', action='store_true',
+                        help='use -log(dice) in loss?')
+    parser.add_argument('-no_weight_loss', '--no_weight_loss', action='store_true',
+                        help='do not weight border in loss?')
 
-    def fit(self, X, y, feature_names=None):
-        if feature_names is not None:
-            self.learner.fit(X, y, feature_names)
+    parser.add_argument('-suf', '--exp_suffix', default='', help='experiment suffix')
+    parser.add_argument('-net', '--network', default='Unet')
+
+    args = parser.parse_args()
+    print("aug:", args.aug)
+    # assert args.aug, 'Careful! No aug specified!'
+    if args.log_aggr is None:
+        args.log_aggr = 1
+    print('log_aggr', args.log_aggr)
+
+    # Set random seed
+    random.seed(42)
+    torch.manual_seed(args.seed)
+
+    print('CudNN:', torch.backends.cudnn.version())
+    print('Run on {} GPUs'.format(torch.cuda.device_count()))
+    torch.backends.cudnn.benchmark = not args.no_cudnn  # Enable use of CudNN
+
+    experiment = "{}_s{}_im{}_gacc{}{}{}{}_{}fold{}.{}"\
+        .format(args.network, args.seed, args.image_size, args.num_grad_acc_steps,
+                '_aug{]'.format(args.aug) if args.aug is not None else '',
+                '_nohq' if args.no_hq else '',
+                '_g{}'.format(args.group) if args.group != 'all' else '',
+                'v2' if args.folds_version == 2 else '',
+                args.fold, args.n_folds)
+
+    if args.output_dir is None:
+        ckpt_dir = join(config.MODELS_DIR, experiment + args.exp_suffix)
+        if os.path.exists(join(ckpt_dir, 'checkpoint.pth.tar')):
+            args.output_dir = ckpt_dir
+
+    if args.output_dir is not None and os.path.exists(args.output_dir):
+        ckpt_path = join(args.output_dir, 'checkpoint.pth.tar')
+        if not os.path.isfile(ckpt_path):
+            print("=> no checkpoint found at '{}'\nUsing model_best.pth.tar".format(ckpt_path))
+            ckpt_path = join(args.output_dir, 'model_best.pth.tar')
+        if os.path.isfile(ckpt_path):
+            print("=> loading checkpoint '{}'".format(ckpt_path))
+            checkpoint = torch.load(ckpt_path)
+            if 'filters_sizes' in checkpoint:
+                filters_sizes = checkpoint['filters_sizes']
+            print("=> loaded checkpoint '{}' (epoch {})".format(ckpt_path, checkpoint['epoch']))
         else:
-            self.learner.fit(X, y)
-
-    def predict(self, X, feature_names=None):
-        if feature_names is not None:
-            y_pred = self.learner.predict(X, feature_names)
+            raise IOError("=> no checkpoint found at '{}'".format(ckpt_path))
+    else:
+        checkpoint = None
+        if args.network == 'UNet':
+            filters_sizes = np.asarray([32, 64, 64, 128, 128, 256])
         else:
-            y_pred = self.learner.predict(X)
+            raise ValueError('Unknown Net: {}'.format(args.network))
 
-        return y_pred
+    if args.network in ['vgg11v1','vgg11v2']:
+        pass
+    elif args.network in ['vgg11av1','vgg11va2']:
+        pass
+    else:
+        unet_class = getattr(unet_utils, args.network)
+        model = torch.nn.DataParallel(
+            unet_class(is_deconv=False, filters=filters_sizes)).cuda()
+    print('  + Number of params: {}'.format(sum([p.data.nelment() for p in model.parameters()])))
 
-    def plot_importance(self):
-        ax = self.learner.plot_importance()
-        return ax
+    rescale_size = (args.image_size, args.image_size)
 
-
-class EnsembleLearner:
-    def __init__(self, learner_dict):
-        self.learner_dict = learner_dict
-
-    def __str__(self):
-        return "EnsembleLearner"
-
-    def fit(self, X, y):
-        for learner_name in self.learner_dict.keys():
-            p = self.learner_dict[learner_name]["param"]
-            l = Learner(learner_name, p)._get_learner()
-            if l is not None:
-                self.learner_dict[learner_name]["learner"] = l.fit(X,y)
-            else:
-                self.learner_dict[learner_name]["learner"] = None
-            return self
-
-    def predict(self, X):
-        y_pred = np.zeros((X.shape[0]), dtype=float)
-        w_sum = 0.
-        for learner_name in self.learner_dict.keys():
-            l = self.learner_dict[learner_name]["learner"]
-            if l is not None:
-                w = self.learner_dict[learner_name]["weight"]
-                y_pred += w * l.predict(X)
-                w_sum += w
-        y_pred /= w_sum
-        return y_pred
-
-class Feature:
-    def __init__(self, feature_name):
-        self.feature_name = feature_name
-        self.data_dict = self._load_data_dict()
-        self.splitter = self.data_dict["splitter"]
-        self.n_iter = self.data_dict["n_iter"]
-
-    def __str__(self):
-        return self.feature_name
-
-    def _load_data_dict(self):
-        fname = os.path.join(config.FEAT_DIR+"/Combine", self.feature_name + config.FEAT_FILE_SUFFIX)
-        data_dict = pkl_utils._load(fname)
-        return  data_dict
-
-    ## for Cross-Validation
-    def _get_train_valid_data(self, i):
-        # feature
-        X_basic_train = self.data_dict["X_train_basic"][self.splitter[i][0], :]
-        X_basic_valid = self.data_dict["X_train_basic"][self.splitter[i][1], :]
-        if self.data_dict["basic_only"]:
-            X_train, X_valid = X_basic_train, X_basic_valid
-        else:
-            X_train_cv = self.data_dict["X_train_cv"][self.splitter[i][0], :, i]
-            X_valid_cv = self.data_dict["X_train_cv"][self.splitter[i][1], :, i]
-            X_train = np.hstack((X_basic_train, X_train_cv)) # Stack arrays in sequence horizontally
-            X_valid = np.hstack((X_basic_valid, X_valid_cv))
-        # label
-        y_train = self.data_dict["y_train"][self.splitter[i][0]]
-        y_valid = self.data_dict["y_train"][self.splitter[i][1]]
-
-        return X_train, y_train, X_valid, y_valid
-
-
-class StackingFeature(Feature):
-    def __init__(self, feature_name):
-        super().__init__(feature_name)
-        self.splitter_prev = self.data_dict["splitter_prev"]
-
-    ## for Cross-Validation
-    def _get_train_valid_data(self, i):
-        # feature
-        X_train_cv = self.data_dict["X_train_cv"][i][self.splitter[i][0]]
-        X_valid_cv = self.data_dict["X_train_cv"][i][self.splitter[i][1]]
-        if self.data_dict["has_basic"]:
-            X_train_basic = self.data_dict["X_train_basic"][self.splitter_prev[i]]
-            X_train = np.hstack([X_train_basic[self.splitter[i][0]], X_train_cv])
-            X_valid = np.hstack([X_train_basic[self.splitter[i][1]], X_valid_cv])
-        # label
-        y_train = self.data_dict["y_train_cv"][i][self.splitter[i][0]]
-        y_valid = self.data_dict["y_train_cv"][i][self.splitter[i][1]]
-
-        return X_train, y_train, X_valid, y_valid
-
-    ## for refit
-
-class Task:
-    def __init__(self, learner, feature, suffix, logger, verbose=True, plot_importance=False):
-        self.learner = learner
-        self.feature = feature
-        self.suffix = suffix
-        self.logger = logger
-        self.verbose = verbose
-        self.plot_importance = plot_importance
-        self.n_iter = self.feature.n_iter
-        self.evaluation_cv_mean = 0
-        self.evaluation_cv_std = 0
-
-    def __str__(self):
-        return "[Feat@%s]_[Learner@%s]%s" % (str(self.feature), str(self.learner), str(self.suffix))
-
-    # print learner param dict for log
-    def _print_param_dict(self, d, prefix="      ", incr_prefix="      "):
-        for k, v in sorted(d.items()):
-            if isinstance(v, dict):
-                self.logger.info("%s%s:" % (prefix, k))
-                self._print_param_dict(v, prefix+incr_prefix, incr_prefix)
-            else:
-                self.logger.info("%s%s: %s" % (prefix, k, v))
-
-
-    # Cross-Validation
-    def cv(self):
-        start = time.time()
-        if self.verbose:
-            self.logger.info("="*50)
-            self.logger.info("Task")
-            self.logger.info("      %s" % str(self.__str__()))
-            self.logger.info("Param")
-            self._print_param_dict(self.learner.param_dict)
-            self.logger.info("Result")
-            self.logger.info("      Run      Evaluation        Shape")
-
-        evaluation_cv = np.zeros(self.n_iter)
-        for i in range(self.n_iter):
-            # data
-            X_train, y_train, X_valid, y_valid = self.feature._get_train_valid_data(i)
-
-            # TODO 需要根据新项目重写
-            # fit
-            self.learner.fit(X_train, y_train)
-            y_pred = self.learner.predict(X_valid)
-            evaluation_cv[i] = eval_utils._iou(y_valid, y_pred)
-
-            # log
-            self.logger.info("     {:>3}     {:>8}     {} x {}".format(
-                i+1, np.round(evaluation_cv[i], 6), X_train.shape[0], X_train.shape[1]))
-
-            # save
-            fname = "%s/Run%d/valid.pred.%s.csv" % (config.OUTPUT_DIR, i+1, self.__str__())
-            df = pd.DataFrame({"target": y_valid, "prediction": y_pred})
-            df.to_csv(fname, index=False, columns=["target", "preditction"])
-            if hasattr(self.learner.learner, "predict_proba"):
-                y_proba = self.learner.learner.predict_proba(X_valid)
-                fname = "%s/Run%d/valid.proba.%s.csv" % (config.OUTPUT_DIR, i+1, self.__str__())
-                columns = ["proba%d"%i for i in range(y_proba.shape[1])]
-                df = pd.DataFrame(y_proba, columns=columns)
-                df["target"] = y_valid
-                df.to_csv(fname, index=False)
-
-        self.evaluation_cv_mean = np.mean(evaluation_cv)
-        self.evaluation_cv_std = np.std(evaluation_cv)
-        end = time.time()
-        _sec = end - start
-        _min = int(_sec/60.)
-        if self.verbose:
-            self.logger.info("Evaluation")
-            self.logger.info("          Mean: %.6f" % self.evaluation_cv_mean)
-            self.logger.info("          Std: %.6f" % self.evaluation_cv_std)
-            self.logger.info("Time")
-            if _min > 0:
-                self.logger.info("          %d mins" % _min)
-            else:
-                self.logger.info("          %d secs" % _sec)
-            self.logger.info("-"*50)
-        return self
-
-    def refit(self):
-        X_train, y_train, X_test = self.feature._get_train_valid_data()
-        if self.plot_importance:
-            feature_names = self.feature._get_feature_names()
-            self.learner.fit(X_train, y_train, feature_names)
-            y_pred = self.learner.predict(X_test, feature_names)
-        else:
-            self.learner.fit(X_train, y_train)
-            y_pred =self.learner.predict(X_test)
-
-        id_test = self.feature.data_dict["id_test"].astype(int)
-
-        # save
-        fname = "%s/%s/test.pred.%s.csv" % (config.OUTPUT_DIR, "All", self.__str__())
-        pd.DataFrame({"id": id_test, "prediction": y_pred}).to_csv(fname, index=False)
-        if hasattr(self.learner.learner, "predict_proba"):
-            if self.plot_importance:
-                feature_names = self.feature._get_feature_names()
-                y_proba = self.learner.learner.predict_proba(X_test, feature_names)
-            else:
-                y_proba = self.learner.learner.predict_proba(X_test)
-            fname = "%s/%s/test.proba.%s.csv" % (config.OUTPUT_DIR, "All", self.__str__())
-            columns = ["proba%d" % i for i in range(y_proba.shape[1])]
-            df = pd.DataFrame(y_proba,columns=columns)
-            df["id"] = id_test
-            df.to_csv(fname, index=False)
-
-        # submission
-        fname = "%s/test.pred.%s.[Mean%.6f]_[Std%.6f].csv" % (
-            config.SUBM_DIR, self.__str__(), self.rmse_cv_mean, self.rmse_cv_std)
-        pd.DataFrame({"id": id_test, "relevance": y_pred}).to_csv(fname, index=False)
-
-        # plot importance
-        if self.plot_importance:
-            ax = self.learner.plot_importance()
-            ax.figure.savefig("%s/%s.pdf" % (config.FIG_DIR, self.__str__()))
-
-        return self
-
-    def go(self):
-        self.cv()
-        self.refit()
-        return self
+    # Load train data
 
 
 
-class StackingTask(Task):
-    def __init__(self, learner, ):
-
-class TaskOptimizer:
-    def __init__(self, task_mode, learner_name, feature_name, logger,
-                 max_evals=100, verbose=True, refit_once=False, plot_importance=False):
-        self.task_mode = task_mode
-        self.learner_name = learner_name
-        self.feature_name = feature_name
-        self.feature = self._get_feature()
-        self.logger = logger
-        self.max_evals = max_evals
-        self.verbose = verbose
-        self.refit_once = refit_once
-        self.plot_importance = plot_importance
-        self.trial_counter = 0
-        self.model_param_space = ModelParamSpace(self.learner_name)
-
-    def _get_feature(self):
-        if self.task_mode == "single":
-            feature = Feature(self.feature_name)
-        elif self.task_mode == "stacking":
-            feature = StackingFeature(self.feature_name)
-        return  feature
-
-    def _obj(self, param_dict):
-        self.trial_counter += 1
-        param_dict = self.model_param_space._convert_int_param(param_dict)
-        learner = Learner(self.learner_name, param_dict)
-        suffix = "_[Id@%s]" % str(self.trial_counter)
-        if self.task_mode == "single":
-            self.task = Task(learner, self.feature, suffix, self.logger, self.verbose, self.plot_importance)
-        elif self.task_mode =="stacking":
-            self.task = StackingTask(learner, self.feature, suffix, self.logger, self.verbose, self.refit_once)
-        self.task.go()
-        ret = {
-            "loss": self.task,
-            "attachments": {
-                "std": self.task
-            },
-            "status": STATUS_OK,
-        }
-        return  ret
-
-    def run(self):
-
-
-# ----------------- Main -----------------
-def main(options):
-    logname = "[Feat@%s]_[Learner@%s]_hyperopt_%s.log"%(
-        options.feature_name, options.learner_name, time_utils._timestamp())
-    logger = logging_utils._get_logger(config.LOG_DIR, logname)
-    optimizer = TaskOptimizer(options.task_mode, options.learner_name,
-                              options.feature_name, logger, options.max_evals, verbose=True,
-                              refit_once=options.refit_once, plot_importance=options.plot_importance)
-    optimizer.run()
-
-
-def parse_args(parser):
-    parser.add_option("-m", "--mode", type="string", dest="task_mode",
-                      help="task mode", default="single")
-    parser.add_option("-f", "--feat", type="string", dest="feature_name",
-                      help="feature name", default="basic")
-    parser.add_option("-l", "--learner", type="string", dest="learner_name",
-                      help="learner name", default="unet")
-    parser.add_option("-e", "--eval", type="int", dest="max_evals",
-                      help="maximun number of evals for hyperopt", default=100)
-    parser.add_option("-o", default=False, action="store_true", dest="refit_once",
-                      help="stacking refit_once")
-    parser.add_option("-p", default=False, action="store_true", dest="plot_importance",
-                      help="plot feature importance (currently only for unet)")
-
-    (options, args) = parser.parse_args()
-    return options, args
+if __name__ == '__main__':
+    main()
 
 
 
-if __name__ == "__main__":
 
-    parser = OptionParser()
-    options, args = parse_args(parser)
-    main(options)
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

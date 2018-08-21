@@ -1,155 +1,133 @@
-# -*- coding: utf-8 -*-
-"""
-@auth Jason Zhang <gsangeryeee@gmail.com>
-@brief: 
-
-"""
-import numpy as np
-import pandas as pd
-
-from random import randint
-
-import matplotlib.pyplot as plt
-plt.style.use('seaborn-white')
-import seaborn as sns
-sns.set_style("white")
-
-from sklearn.model_selection import train_test_split
-
-from skimage.transform import resize
-
-from keras.preprocessing.image import load_img
-from keras import Model
-from keras.callbacks import EarlyStopping, ModelCheckpoint, ReduceLROnPlateau
-from keras.models import load_model
-from keras.optimizers import Adam
-from keras.utils.vis_utils import plot_model
-from keras.preprocessing.image import ImageDataGenerator
-from keras.layers import Input, Conv2D, Conv2DTranspose, MaxPooling2D, concatenate, Dropout
-
-from tqdm import tqdm_notebook
+import torch
+import torch.nn as nn
 
 
-img_size_ori = 101
-img_size_target = 128
+class UNetConvBlock(nn.Module):
+    def __init__(self, in_size, out_size, is_batchnorm, num_layers=2):
+        super(UNetConvBlock, self).__init__()
+
+        self.convs = nn.ModuleList()
+        if is_batchnorm:
+            conv = nn.Sequential(nn.Conv2d(in_size, out_size, 3, 1, padding=1),
+                                 nn.BatchNorm2d(out_size), nn.ReLU)
+            self.convs.append(conv)
+            for i in range(1, num_layers):
+                conv = nn.Sequential(nn.Conv2d(out_size, out_size, 3, 1, padding=1),
+                                     nn.BatchNorm2d(out_size), nn.ReLU())
+                self.convs.append(conv)
+        else:
+            conv = nn.Sequential(nn.Conv2d(in_size, out_size, 3, 1, padding=1),
+                                 nn.ReLU())
+            self.convs.append(conv)
+
+    def forward(self, inputs):
+        outputs = inputs
+        for conv in self.convs:
+            outputs = conv(outputs)
+        return outputs
 
 
-def upsamle(img):
-    if img_size_ori == img_size_target:
-        return img
-    return resize(img, (img_size_target, img_size_target), mode='constant', preserve_range=True)
+class UNetDown(nn.Module):
+
+    def __init__(self, in_size, out_size, is_batchnorm):
+        super(UNetDown, self).__init__()
+        self.conv = UNetConvBlock(in_size, out_size, is_batchnorm, num_layers=2)
+        self.pool = nn.MaxPool2d(2, 2)
+
+    def forward(self, inputs):
+        residual = self.conv(inputs)
+        outputs = self.pool(residual)
+        return residual, outputs
 
 
-def downsample(img):
-    if img_size_ori == img_size_target:
-        return img
-    return resize(img, (img_size_ori, img_size_ori), mode='constant', preserve_range=True)
+class UNetUp(nn.Module):
+    def __init__(self, in_size, out_size, is_deconv=False, residual_size=2, is_batchnorm=False):
+        super(UNetUp, self).__init__()
+        if residual_size is None:
+            residual_size = out_size
+        if is_deconv:
+            self.up = nn.ConvTranspose2d(in_size, in_size, kernel_size=2, stride=2)
+            self.conv = UNetConvBlock(in_size + residual_size, out_size, is_batchnorm=is_batchnorm, num_layers=2)
+        else:
+            self.up = nn.Upsample(scale_factor=2, mode="bilinear")
+            self.conv = UNetConvBlock(in_size + residual_size, out_size, is_batchnorm=is_batchnorm, num_layers=3)
+        print('UnetUp convBlock::{}->{}'.format(in_size + residual_size, out_size))
+
+    def forward(self, residual, previous):
+        upsampled = self.up(previous)
+        print('previous ({}) -> upsampled ({})'.format(previous.size()[1], upsampled.size()[1]))
+        print('residual.size(), upsampled.size()', residual.size(), upsampled.size())
+        result = self.conv(torch.cat([residual, upsampled], 1))
+        print('Result size:', result.size())
+        return result
 
 
-train_df = pd.read_csv("../input/train.csv", index_col="id", usecols=[0])
-depths_df = pd.read_csv("../input/depth.csv", index_col="id")
-train_df = train_df.join(depths_df)  # store training data and the depths
-# create a test DataFrame with entries from depth not in train.
-test_df = depths_df[~depths_df.index.isin(train_df.index)]
+class UNet(nn.Module):
+
+    def __init__(self, feature_scale=1, n_classes=1, is_deconv=True, in_channels=3,
+                 is_batchnorm=True, filters=None):
+        super(UNet, self).__init__()
+        self.is_deconv = is_deconv
+        self.in_channels = in_channels
+        self.is_batechnorm = is_batchnorm
+        self.feature_scale = feature_scale
+
+        if filters is None:
+            filters = [32, 64, 64, 128, 128, 256]
+        print("UNet filter sizes:", filters)
+
+        filters = [x / self.feature_scale for x in filters]
+
+        self.down1 = UNetDown(self.in_channels, filters[0], self.is_batechnorm)
+        self.down2 = UNetDown(filters[0], filters[1], self.is_batechnorm)
+        self.down3 = UNetDown(filters[1], filters[2], self.is_batechnorm)
+        self.down4 = UNetDown(filters[2], filters[3], self.is_batechnorm)
+        self.down5 = UNetDown(filters[3], filters[4], self.is_batechnorm)
+
+        self.center = UNetConvBlock(filters[4], filters[5], self.is_batechnorm)
+
+        self.up5 = UNetUp(filters[5], filters[4], self.is_deconv, is_batchnorm=self.is_batechnorm)
+        self.up4 = UNetUp(filters[4], filters[3], self.is_deconv, is_batchnorm=self.is_batechnorm)
+        self.up3 = UNetUp(filters[3], filters[2], self.is_deconv, is_batchnorm=self.is_batechnorm)
+        self.up2 = UNetUp(filters[2], filters[1], self.is_deconv, is_batchnorm=self.is_batechnorm)
+        self.up1 = UNetUp(filters[1], filters[0], self.is_deconv, is_batchnorm=self.is_batechnorm)
+
+        self.final = nn.Conv2d(filters[0], n_classes, kernel_size=1)
+
+    def forward(self, inputs):
+        res1, out = self.down1(inputs)
+        res2, out = self.down2(out)
+        res3, out = self.down3(out)
+        res4, out = self.down4(out)
+        res5, out = self.down5(out)
+        out = self.center(out)
+        out = self.up5(res5, out)
+        out = self.up4(res4, out)
+        out = self.up3(res3, out)
+        out = self.up2(res2, out)
+        out = self.up1(res1, out)
+        return self.final(out)
 
 
-# Load the images and masks into the DataFrame and divide the pixel values by 255
-train_df["images"] = [np.array(load_img("../input/train/images/{}.png".format(idx), grayscale=True))/255]
-
-train_df["masks"] = [np.array(load_img("../input/train/masks/{}.png".format(idx), grayscale=True))/255]
-
-# Counting the number of salt pixels in the masks and dividing them by the image size.
-# Also create 11 coverage classes, -0.1 having no salt at all to 1.0 being salt only.
-# Plotting the distribution of coverages and coverage classes, and the class against the raw coverage.
-train_df["coverage"] = train_df.mask.map(np.sum) / pow(img_size_ori, 2)
 
 
-def cov_to_class(val):
-    for i in range(0, 11):
-        if val * 10 <= i:
-            return i
 
 
-train_df["coverage_class"] = train_df.coverage.map(cov_to_class)
-
-# Create train/validation split stratified by salt coverage
-# Using the salt coverage as a stratification criterion. Also show an image to check for correct upsampling.
-ids_train, ids_valid, x_train, x_valid, y_train, y_valid, cov_train, cov_test, depth_train, depth_test = train_test_split(
-    train_df.index.values,
-    np.array(train_df.images.map(upsamle).tolist()).reshape(-1, img_size_target,img_size_target, 1),
-    np.array(train_df.masks.map(upsamle).tolist()).reshape(-1, img_size_target, img_size_target, 1),
-    train_df.coverage.values,
-    train_df.z.values,
-    test_size=0.2, stratify=train_df.coverage_class, random_state=1337
-)
 
 
-# Model
-def build_model(input_layer, start_neurons):
-    # 128 -> 64
-    conv1 = Conv2D(start_neurons * 1, (3, 3), activation="relu", padding="same")(input_layer)
-    conv1 = Conv2D(start_neurons * 1, (3, 3), activation="relu", padding="same")(conv1)
-    pool1 = MaxPooling2D((2, 2))(conv1)
-    pool1 = Dropout(0.25)(pool1)
-
-    # 64 -> 32
-    conv2 = Conv2D(start_neurons * 2, (3, 3), activation="relu", padding="same")(pool1)
-    conv2 = Conv2D(start_neurons * 2, (3, 3), activation="relu", padding="same")(conv2)
-    pool2 = MaxPooling2D((2, 2))(conv2)
-    pool2 = Dropout(0.5)(pool2)
-
-    # 32 -> 16
-    conv3 = Conv2D(start_neurons * 4, (3, 3), activation="relu", padding="same")(pool2)
-    conv3 = Conv2D(start_neurons * 4, (3, 3), activation="relu", padding="same")(conv3)
-    pool3 = MaxPooling2D((2, 2))(conv3)
-    pool3 = Dropout(0.5)(pool3)
-
-    # 16 -> 8
-    conv4 = Conv2D(start_neurons * 8, (3, 3), activation="relu", padding="same")(pool3)
-    conv4 = Conv2D(start_neurons * 8, (3, 3), activation="relu", padding="same")(conv4)
-    pool4 = MaxPooling2D((2, 2))(conv4)
-    pool4 = Dropout(0.5)(pool4)
-
-    # Middle
-    convm = Conv2D(start_neurons * 16, (3, 3), activation="relu", padding="same")(pool4)
-    convm = Conv2D(start_neurons * 16, (3, 3), activation="relu", padding="same")(convm)
-
-    # 8 -> 16
-    deconv4 = Conv2DTranspose(start_neurons * 8, (3, 3), strides=(2, 2), padding="same")(convm)
-    uconv4 = concatenate([deconv4, conv4])
-    uconv4 = Dropout(0.5)(uconv4)
-    uconv4 = Conv2D(start_neurons * 8, (3, 3), activation="relu", padding="same")(uconv4)
-    uconv4 = Conv2D(start_neurons * 8, (3, 3), activation="relu", padding="same")(uconv4)
-
-    # 16 -> 32
-    deconv3 = Conv2DTranspose(start_neurons * 4, (3, 3), strides=(2, 2), padding="same")(uconv4)
-    uconv3 = concatenate([deconv3, conv3])
-    uconv3 = Dropout(0.5)(uconv3)
-    uconv3 = Conv2D(start_neurons * 4, (3, 3), activation="relu", padding="same")(uconv3)
-    uconv3 = Conv2D(start_neurons * 4, (3, 3), activation="relu", padding="same")(uconv3)
-
-    # 32 -> 64
-    deconv2 = Conv2DTranspose(start_neurons * 2, (3, 3), strides=(2, 2), padding="same")(uconv3)
-    uconv2 = concatenate([deconv2, conv2])
-    uconv2 = Dropout(0.5)(uconv2)
-    uconv2 = Conv2D(start_neurons * 2, (3, 3), activation="relu", padding="same")(uconv2)
-    uconv2 = Conv2D(start_neurons * 2, (3, 3), activation="relu", padding="same")(uconv2)
-
-    # 64 -> 128
-    deconv1 = Conv2DTranspose(start_neurons * 1, (3, 3), strides=(2, 2), padding="same")(uconv2)
-    uconv1 = concatenate([deconv1, conv1])
-    uconv1 = Dropout(0.5)(uconv1)
-    uconv1 = Conv2D(start_neurons * 1, (3, 3), activation="relu", padding="same")(uconv1)
-    uconv1 = Conv2D(start_neurons * 1, (3, 3), activation="relu", padding="same")(uconv1)
-
-    uncov1 = Dropout(0.5)(uconv1)
-    output_layer = Conv2D(1, (1, 1), padding="same", activation="sigmoid")(uconv1)
-
-    return output_layer
 
 
-input_layer = Input((img_size_target, img_size_target, 1))
-output_layer = build_model(input_layer, 16)
+
+
+
+
+
+
+
+
+
+
+
 
 
 
