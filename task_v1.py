@@ -272,7 +272,7 @@ def train(args, model: nn.Module, criterion, *, train_loader, valid_loader,
             for i, (inputs, targets) in enumerate(tl):
                 inputs, targets = variable(inputs), variable(targets)
                 outputs = model(inputs)
-                # outputs , targets
+                # TODO Error Check inputs, outputs , targets shapes
                 loss = criterion(outputs, targets)
                 optimizer.zero_grad()
                 batch_size = inputs.size(0)
