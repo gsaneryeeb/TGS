@@ -3,7 +3,7 @@ set -e # abort if any command fails
 
 source activate aienv
 
-# python prepare_folds.py
+#python prepare_folds.py
 
 for i in 0 1 2 3 4
 do

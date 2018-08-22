@@ -31,6 +31,7 @@ from utils.unet_vgg_utils import Loss, UNet11
 from torch.utils.data import DataLoader, Dataset
 
 import config
+from utils import utils
 
 cuda_is_available = torch.cuda.is_available()
 
@@ -63,7 +64,7 @@ class TGSDataset(Dataset):
 
             return (image,)
         else:
-            mask = load_image(mask_path, mask=True)
+            mask = load_image(mask_path)
 
             if self.to_augment:
                 image, mask = augment(image, mask)
@@ -174,6 +175,7 @@ def random_hue_saturation_value(image,
 
 
 def grayscale_aug(image, mask):
+
     image_pixels = (cv2.cvtColor(mask, cv2.COLOR_GRAY2RGB) * image).astype(np.uint8)
 
     gray_image = cv2.cvtColor(image_pixels, cv2.COLOR_RGB2GRAY)
@@ -270,6 +272,7 @@ def train(args, model: nn.Module, criterion, *, train_loader, valid_loader,
             for i, (inputs, targets) in enumerate(tl):
                 inputs, targets = variable(inputs), variable(targets)
                 outputs = model(inputs)
+                # outputs , targets
                 loss = criterion(outputs, targets)
                 optimizer.zero_grad()
                 batch_size = inputs.size(0)
@@ -326,7 +329,8 @@ def main():
     model = UNet11()
 
     device_ids = list(map(int, args.device_ids.split(',')))
-    model = nn.DataParallel(model, device_ids=device_ids).cuda()
+
+    model = nn.DataParallel(model, device_ids=device_ids).cuda() # Using GPU
 
     loss = Loss()
 
@@ -339,8 +343,9 @@ def main():
             pin_memory=True
         )
 
-    train_df = pd.read_csv(os.path.join(config.DATA_DIR, 'train.csv'))
-    train_root = os.path.join(config.DATA_DIR, 'train')
+    train_df = pd.read_csv(os.path.join(config.DATA_ROOT, 'train.csv'))
+
+    train_root = os.path.join(config.DATA_ROOT, 'train')
     file_list = list(train_df['id'].values)
     file_list_valid = file_list[::10]
     file_list_train = [ f for f in file_list if f not in file_list_valid]
