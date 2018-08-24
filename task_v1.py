@@ -224,9 +224,21 @@ def cuda(x):
 def write_event(log, step: int, **data):
     data['step'] = step
     data['dt'] = datetime.now().isoformat()
-    log.write(json.dumps(data, sort_keys=True))
+    log.write(json.dumps(data, sort_keys=True, cls=MyEncoder))
     log.write('\n')
     log.flush()
+
+
+class MyEncoder(json.JSONEncoder):
+    def default(self, obj):
+        if isinstance(obj, np.integer):
+            return int(obj)
+        elif isinstance(obj, np.floating):
+            return float(obj)
+        elif isinstance(obj, np.ndarray):
+            return obj.tolist()
+        else:
+            return super(MyEncoder, self).default(obj)
 
 
 def train(args, model: nn.Module, criterion, *, train_loader, valid_loader,
