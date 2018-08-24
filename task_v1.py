@@ -31,7 +31,7 @@ from utils.unet_vgg_utils import Loss, UNet11
 from torch.utils.data import DataLoader, Dataset
 
 import config
-from utils import utils
+
 
 cuda_is_available = torch.cuda.is_available()
 
@@ -64,15 +64,13 @@ class TGSDataset(Dataset):
 
             return (image,)
         else:
-            mask = load_image(mask_path)
-
+            mask = load_image(mask_path, mask=True)
             if self.to_augment:
                 image, mask = augment(image, mask)
+            return image, mask
 
-        return utils.img_transform(image), torch.from_numpy(np.expand_dims(mask, 0))
 
-
-def load_image(path: Path):
+def load_image(path: Path, mask=False):
     """
     Load image from a given path and pad it on the sides, so that eash side is divisible by 32 (newtwork requirement)
 
@@ -82,6 +80,8 @@ def load_image(path: Path):
         returns image as numpy.array
     """
     img = cv2.imread(str(path))
+
+    img = cv2.cvtColor(img, cv2.COLOR_BGR2RGB)
 
     height, width, _ = img.shape
 
@@ -104,9 +104,13 @@ def load_image(path: Path):
 
     img = cv2.copyMakeBorder(img, y_min_pad, y_max_pad, x_min_pad, x_max_pad, cv2.BORDER_REFLECT_101)
 
-    img = cv2.cvtColor(img, cv2.COLOR_BGR2RGB)
-
-    return img.astype(np.uint8)
+    if mask:
+        # Convert mask to 0 and 1 format
+        img = img[:, :, 0:1] // 255
+        return torch.from_numpy(img).float().permute([2, 0, 1])
+    else:
+        img = img / 255.0
+        return torch.from_numpy(img).float().permute([2, 0, 1])
 
 
 def validation(model: nn.Module, criterion, valid_loader) -> Dict[str, float]:
@@ -273,6 +277,12 @@ def train(args, model: nn.Module, criterion, *, train_loader, valid_loader,
                 inputs, targets = variable(inputs), variable(targets)
                 outputs = model(inputs)
                 # TODO Error Check inputs, outputs , targets shapes
+                # inputs = torch.Size([4, 3, 128, 128])
+                # outputs = torch.Size([4, 1, 128, 128])
+                # targets = torch.Size([4, 1, 128, 128, 3])
+                print('inputs size = ', inputs.size())
+                print('outputs size = ', outputs.size())
+                print('targets size = ', targets.size())
                 loss = criterion(outputs, targets)
                 optimizer.zero_grad()
                 batch_size = inputs.size(0)
@@ -351,7 +361,7 @@ def main():
     file_list_train = [ f for f in file_list if f not in file_list_valid]
 
     valid_loader = make_loader(train_root, file_list_valid)
-    train_loader = make_loader(train_root, file_list_train, is_test=False, to_augment=True, shuffle=True)
+    train_loader = make_loader(train_root, file_list_train, is_test=False, to_augment=False, shuffle=True)
 
     train(
         init_optimizer=lambda lr: Adam(model.parameters(), lr=lr),
@@ -367,3 +377,4 @@ def main():
 
 if __name__ == '__main__':
     main()
+
