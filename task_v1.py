@@ -4,6 +4,9 @@
 @brief: 
 
 """
+# TODO 1: Check augment function
+# TODO 2:
+
 import json
 import argparse
 import cv2
@@ -277,12 +280,14 @@ def train(args, model: nn.Module, criterion, *, train_loader, valid_loader,
                 inputs, targets = variable(inputs), variable(targets)
                 outputs = model(inputs)
                 # TODO Error Check inputs, outputs , targets shapes
+                # using augment
                 # inputs = torch.Size([4, 3, 128, 128])
                 # outputs = torch.Size([4, 1, 128, 128])
                 # targets = torch.Size([4, 1, 128, 128, 3])
-                print('inputs size = ', inputs.size())
-                print('outputs size = ', outputs.size())
-                print('targets size = ', targets.size())
+                # Without augment
+                # inputs size =  torch.Size([4, 3, 128, 128])
+                # outputs size =  torch.Size([4, 1, 128, 128])
+                # targets size =  torch.Size([4, 1, 128, 128])
                 loss = criterion(outputs, targets)
                 optimizer.zero_grad()
                 batch_size = inputs.size(0)
@@ -290,6 +295,7 @@ def train(args, model: nn.Module, criterion, *, train_loader, valid_loader,
                 tq.update(batch_size)
                 losses.append(loss.data[0])
                 mean_loss = np.mean(losses[-report_each:])
+                print("mean_loss=", mean_loss)
                 tq.set_postfix(loss='{:.5f}'.format(mean_loss))
 
                 (batch_size * loss).backward()
