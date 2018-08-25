@@ -84,8 +84,6 @@ class Loss:
         self.dice_weight = dice_weight
 
     def __call__(self, outputs, targets):
-        print("unet_vgg_utils-Loss-__call__ ---> outputs size =", outputs.size())
-        print("unet_vgg_utils-Loss-__call__ ---> targets size =", targets.size())
         loss = self.nll_loss(outputs, targets)
         if self.dice_weight:
             eps = 1e-15
