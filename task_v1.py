@@ -66,6 +66,7 @@ class TGSDataset(Dataset):
         if self.is_test:
 
             return (image,)
+
         else:
             mask = load_image(mask_path, mask=True)
             if self.to_augment:
@@ -84,7 +85,7 @@ def load_image(path: Path, mask=False):
     """
     img = cv2.imread(str(path))
 
-    img = cv2.cvtColor(img, cv2.COLOR_BGR2RGB)
+    img = cv2.cvtColor(img, cv2.COLOR_BGR2RGB)  # BGR转RGB 为后面变化使用。cv2 读取图片的默认通道是BGR
 
     height, width, _ = img.shape
 
@@ -105,15 +106,39 @@ def load_image(path: Path, mask=False):
         x_min_pad = int(x_pad / 2)
         x_max_pad = x_pad - x_min_pad
 
+    # TODO: 此种方式在边界处会影响预测效果。在图像增强可以考虑，旋转后在padding，或者缩减的方式，按照32倍数窗口进行切割并预测。
+    # Various border types, image boundaries aredenoted with '|'
+    # BORDER_REPLICATE: aaaaaa | abcdefgh | hhhhhhh
+    # BORDER_REFLECT: fedcba | abcdefgh | hgfedcb
+    # BORDER_REFLECT_101: gfedcb | abcdefgh | gfedcba
+    # BORDER_WRAP: cdefgh | abcdefgh | abcdefg
+    # BORDER_CONSTANT: iiiiii | abcdefgh | iiiiiii with some specified 'i'
     img = cv2.copyMakeBorder(img, y_min_pad, y_max_pad, x_min_pad, x_max_pad, cv2.BORDER_REFLECT_101)
 
+    # Version 2
     if mask:
-        # Convert mask to 0 and 1 format
         img = img[:, :, 0:1] // 255
-        return torch.from_numpy(img).float().permute([2, 0, 1])
+
     else:
         img = img / 255.0
-        return torch.from_numpy(img).float().permute([2, 0, 1])
+
+    return torch.from_numpy(img).float()
+
+    # Version 1
+    # if mask:
+    #     # Convert mask to 0 and 1 format
+    #     # mask 图片处理
+    #     # 1. 取 mask 图片的 B 通道第一层，因为B通道所有值都是255(白色),[:,:,0:1] 全部的R和G和B的第一层
+    #     # 2. // 255,取整除法操作，因为白色地方数值为255，取整除法后为1。
+    #     # 3. 转换后所有白色部分，变为1（白色），其他为0（黑色）
+    #     img = img[:, :, 0:1] // 255
+    #     return torch.from_numpy(img).float().permute([2, 0, 1])
+    #
+    # else:
+    #     img = img / 255.0  # 将图像值控制在0-1之间，方便计算。
+    #     return torch.from_numpy(img).float().permute([2, 0, 1])
+    #     # from_numpy : creates a Tensor（张量） from a numpy.ndarray
+    #     # permute 变换维度顺序 原顺序为[0,1,2],变为[2,0,1]
 
 
 def validation(model: nn.Module, criterion, valid_loader) -> Dict[str, float]:
@@ -205,9 +230,10 @@ def add_args(parser):
     arg('--epoch-size', type=int)
 
 
+# cyclic learning rate
 def cyclic_lr(epoch, init_lr=1e-4, num_epochs_per_cycle=5, cycle_epochs_decay=2, lr_decay_factor=0.5):
     epoch_in_cycle = epoch % num_epochs_per_cycle
-    lr = init_lr * (lr_decay_factor ** (epoch_in_cycle // cycle_epochs_decay))
+    lr = init_lr * (lr_decay_factor ** (epoch_in_cycle // cycle_epochs_decay)) # // 整数除，只保留整数部分
     return lr
 
 
@@ -380,7 +406,7 @@ def main():
     train_root = os.path.join(config.DATA_ROOT, 'train')
     file_list = list(train_df['id'].values)
     file_list_valid = file_list[::10]
-    file_list_train = [ f for f in file_list if f not in file_list_valid]
+    file_list_train = [f for f in file_list if f not in file_list_valid]
 
     valid_loader = make_loader(train_root, file_list_valid)
     train_loader = make_loader(train_root, file_list_train, is_test=False, to_augment=False, shuffle=True)
