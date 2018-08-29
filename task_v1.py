@@ -116,6 +116,8 @@ def load_image(path: Path, mask=False):
     img = cv2.copyMakeBorder(img, y_min_pad, y_max_pad, x_min_pad, x_max_pad, cv2.BORDER_REFLECT_101)
 
     # Version 2
+    if mask:
+        img = img[:, :, 0:1]
 
     return torch.from_numpy(img).float().permute([2, 0, 1])  # 可能与model的网络结构有关，不转换会报错。
 
