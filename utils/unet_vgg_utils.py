@@ -97,5 +97,6 @@ class Loss:
             print("Loss Function intersection=", intersection)
             union = dice_output.sum() + dice_target.sum() + eps
             print("Loss Function union=", union)
+            # intersection = 0 有问题
             loss -= torch.log(2 * intersection / union)
         return loss
