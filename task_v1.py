@@ -324,6 +324,7 @@ def train(args, model: nn.Module, criterion, *, train_loader, valid_loader,
                 # outputs size =  torch.Size([4, 1, 128, 128])
                 # targets size =  torch.Size([4, 1, 128, 128])
                 loss = criterion(outputs, targets)
+                print("loss =", loss)
                 optimizer.zero_grad()
                 batch_size = inputs.size(0)
                 step += 1
