@@ -122,7 +122,7 @@ def load_image(path: Path, mask=False):
     else:
         img = img / 255.0
 
-    return torch.from_numpy(img).float()
+    return torch.from_numpy(img).float().permute([2, 0, 1])
 
     # Version 1
     # if mask:
