@@ -84,7 +84,10 @@ class Loss:
         self.dice_weight = dice_weight
 
     def __call__(self, outputs, targets):
+        print("Loss Function outputs=", outputs.size())
+        print("Loss Function targets=", targets.size())
         loss = self.nll_loss(outputs, targets)
+        print("Loss Function targets=", loss)
         if self.dice_weight:
             eps = 1e-15
             dice_target = (targets == 1).float()
