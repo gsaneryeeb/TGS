@@ -16,6 +16,11 @@ from torchvision.transforms import ToTensor, Normalize, Compose
 
 
 # https://stackoverflow.com/questions/50002543/transforms-compose-meaning-pytorch
-# 参看这部分内容确定0.485的含义
+# 对图像进行归一化处理。
 img_transform = Compose([ToTensor(), Normalize(mean=[0.485, 0.456, 0.406], std=[0.229, 0.224, 0.225])])
+
+
+
+
+
 

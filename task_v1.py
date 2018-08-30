@@ -140,7 +140,7 @@ def load_image(path: Path, mask=False):
 
 def validation(model: nn.Module, criterion, valid_loader) -> Dict[str, float]:
     model.eval()
-    losses =[]
+    losses = []
     dice = []
 
     for inputs, targets in valid_loader:
