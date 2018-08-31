@@ -74,7 +74,7 @@ class TGSDataset(Dataset):
                 image, mask = augment(image, mask)
 
             print("task_v1.py L76 image size:", utils.img_transform(image).size())
-            print("task_v1.py L76 mask size:", torch.from_numpy(mask).permute([2, 0, 1]))
+            print("task_v1.py L76 mask size:", torch.from_numpy(mask).permute([2, 0, 1]).size())
 
             return utils.img_transform(image), torch.from_numpy(mask).permute([2, 0, 1])
 
