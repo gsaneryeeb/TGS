@@ -72,6 +72,10 @@ class TGSDataset(Dataset):
             mask = load_image(mask_path, mask=True)
             if self.to_augment:
                 image, mask = augment(image, mask)
+
+            print("task_v1.py L76 image size:", image.size())
+            print("task_v1.py L76 mask size:", mask.size())
+
             return utils.img_transform(image), torch.from_numpy(np.expand_dims(mask, 0))
 
 
