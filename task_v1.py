@@ -323,9 +323,9 @@ def train(args, model: nn.Module, criterion, *, train_loader, valid_loader,
             for i, (inputs, targets) in enumerate(tl):
                 inputs, targets = variable(inputs), variable(targets)
                 outputs = model(inputs)
-                print("task_v1.py L326 inputs size", inputs.size)
-                print("task_v1.py L326 targets size", targets.size)
-                print("task_v1.py L326 outputs size", outputs.size)
+                print("task_v1.py L326 inputs size", inputs.size())
+                print("task_v1.py L326 targets size", targets.size())
+                print("task_v1.py L326 outputs size", outputs.size())
                 # TODO Error Check inputs, outputs , targets shapes
                 # using augment
                 # inputs = torch.Size([4, 3, 128, 128])
