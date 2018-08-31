@@ -147,7 +147,6 @@ def load_image(path: Path, mask=False):
     #     # from_numpy : creates a Tensor（张量） from a numpy.ndarray
     #     # permute 变换维度顺序 原顺序为[0,1,2],变为[2,0,1]
 
-
 def validation(model: nn.Module, criterion, valid_loader) -> Dict[str, float]:
     model.eval()
     losses = []
