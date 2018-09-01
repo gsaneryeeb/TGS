@@ -249,8 +249,8 @@ def cyclic_lr(epoch, init_lr=1e-4, num_epochs_per_cycle=5, cycle_epochs_decay=2,
 
 def variable(x, volatile=False):
     if isinstance(x, (list, tuple)):
-        return [variable(y, volatile=volatile) for y in x
-    print("task_v1.py L253 x size",x.size())
+        return [variable(y, volatile=volatile) for y in x]
+    print("task_v1.py L253 x size", x.size())
     print("task_v1.py L253 After CUDA x size", cuda(Variable(x, volatile=volatile)).size())
     return cuda(Variable(x, volatile=volatile))
 
