@@ -73,9 +73,6 @@ class TGSDataset(Dataset):
             if self.to_augment:
                 image, mask = augment(image, mask)
 
-            print("task_v1.py L76 image size:", utils.img_transform(image).size())
-            print("task_v1.py L76 mask size:", torch.from_numpy(mask).permute([2, 0, 1]).size())
-
             return utils.img_transform(image), torch.from_numpy(mask).permute([2, 0, 1])
 
 
@@ -128,7 +125,6 @@ def load_image(path: Path, mask=False):
     return img
 
 
-
     # # Version 2
     # if mask:
     #     img = img[:, :, 0:1]
@@ -151,8 +147,9 @@ def load_image(path: Path, mask=False):
     #     # from_numpy : creates a Tensor（张量） from a numpy.ndarray
     #     # permute 变换维度顺序 原顺序为[0,1,2],变为[2,0,1]
 
+
 def validation(model: nn.Module, criterion, valid_loader) -> Dict[str, float]:
-    model.eval()
+    model.eval()  # 必备，将模型设置为评估模式
     losses = []
     dice = []
 
@@ -248,10 +245,8 @@ def cyclic_lr(epoch, init_lr=1e-4, num_epochs_per_cycle=5, cycle_epochs_decay=2,
 
 
 def variable(x, volatile=False):
-    print("task_v1.py L253 Before variable x size", x.size())
     if isinstance(x, (list, tuple)):
         return [variable(y, volatile=volatile) for y in x]
-    print("task_v1.py L253 After variable x size", x.size())
     return cuda(Variable(x, volatile=volatile))
 
 
@@ -315,7 +310,7 @@ def train(args, model: nn.Module, criterion, *, train_loader, valid_loader,
 
         optimizer = init_optimizer(lr)
 
-        model.train()
+        model.train() # 必须，将模型设置为训练模式
         random.seed()
         tq = tqdm.tqdm(total=(args.epoch_size or
                               len(train_loader) * args.batch_size))
@@ -326,13 +321,18 @@ def train(args, model: nn.Module, criterion, *, train_loader, valid_loader,
             tl = islice(tl, args.epoch_size // args.batch_size)
         try:
             mean_loss = 0
-            for i, (inputs, targets) in enumerate(tl):
-                inputs, targets = variable(inputs), variable(targets)
-                outputs = model(inputs)
+            for i, (inputs, targets) in enumerate(tl):  # 从数据加载器迭代一个batch的数据
+                inputs, targets = variable(inputs), variable(targets)   # 使用GPU存储数据
+                outputs = model(inputs)  # 喂入数据并前向传播获取输出
                 print("task_v1.py L326 inputs size", inputs.size())
                 print("task_v1.py L326 targets size", targets.size())
                 print("task_v1.py L326 outputs size", outputs.size())
                 # TODO Error Check inputs, outputs , targets shapes
+                """ Kaggle 成功运行的维度
+                image size torch.Size([30, 3, 128, 128])
+                y_pred size torch.Size([30, 1, 128, 128])
+                mask size torch.Size([30, 1, 128, 128])
+                """
                 # using augment
                 # inputs = torch.Size([4, 3, 128, 128])
                 # outputs = torch.Size([4, 1, 128, 128])
@@ -341,9 +341,9 @@ def train(args, model: nn.Module, criterion, *, train_loader, valid_loader,
                 # inputs size =  torch.Size([4, 3, 128, 128])
                 # outputs size =  torch.Size([4, 1, 128, 128])
                 # targets size =  torch.Size([4, 1, 128, 128])
-                loss = criterion(outputs, targets)
+                loss = criterion(outputs, targets)  # 调用损失函数计算损失
                 print("loss =", loss)
-                optimizer.zero_grad()
+                optimizer.zero_grad()  # 清除所有优化的梯度
                 batch_size = inputs.size(0)
                 step += 1
                 tq.update(batch_size)
@@ -356,8 +356,8 @@ def train(args, model: nn.Module, criterion, *, train_loader, valid_loader,
                 print("mean_loss=", mean_loss)
                 tq.set_postfix(loss='{:.5f}'.format(mean_loss))
 
-                (batch_size * loss).backward()
-                optimizer.step()
+                (batch_size * loss).backward()  # 反向传播
+                optimizer.step()  # 更新参数
 
                 if i and i % report_each == 0:
                     write_event(log, step, loss=mean_loss)
@@ -409,6 +409,7 @@ def main():
     loss = Loss()
 
     def make_loader(ds_root: Path, file_list, is_test=False, to_augment=False, shuffle=False):
+
         return DataLoader(
             dataset=TGSDataset(ds_root, file_list, is_test=is_test, to_augment=to_augment),
             shuffle=shuffle,
