@@ -79,8 +79,7 @@ class UNet11(nn.Module):
         self.dec2 = DecoderBlock(num_filters * (4 + 2), num_filters * 2 * 2, num_filters)
         self.dec1 = ConvRelu(num_filters * (2 + 1), num_filters)
 
-        self.final = nn.Conv2d(num_filters, 3, kernel_size=1)  # 修改final输出为1，参考 kaggle 参考方案设置
-        # https://www.kaggle.com/dremovd/goto-pytorch-baseline
+        self.final = nn.Conv2d(num_filters, 3, kernel_size=1)  # 修改final的out参数输出为3，因为mask通道数为3，这里与y的通道数一致。
 
     def forward(self, x):
         # 定义前向传播
@@ -110,10 +109,10 @@ class Loss:
         self.dice_weight = dice_weight
 
     def __call__(self, outputs, targets):
-        print("Loss Function outputs=", outputs.size())
-        print("Loss Function targets=", targets.size())
+        # print("Loss Function outputs=", outputs.size())
+        # print("Loss Function targets=", targets.size())
         loss = self.nll_loss(outputs, targets)
-        print("Loss Function loss=", loss)
+        # print("Loss Function loss=", loss)
         # if self.dice_weight:
         #     eps = 1e-15
         #     dice_target = (targets == 1).float()
