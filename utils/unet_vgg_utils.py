@@ -79,7 +79,7 @@ class UNet11(nn.Module):
         self.dec2 = DecoderBlock(num_filters * (4 + 2), num_filters * 2 * 2, num_filters)
         self.dec1 = ConvRelu(num_filters * (2 + 1), num_filters)
 
-        self.final = nn.Conv2d(num_filters, 1, kernel_size=1)  # 修改final输出为1，参考 kaggle 参考方案设置
+        self.final = nn.Conv2d(num_filters, num_filters, kernel_size=1)  # 修改final输出为1，参考 kaggle 参考方案设置
         # https://www.kaggle.com/dremovd/goto-pytorch-baseline
 
     def forward(self, x):
