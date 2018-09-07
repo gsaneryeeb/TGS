@@ -279,8 +279,11 @@ def train(args, model: nn.Module, criterion, *, train_loader, valid_loader,
 
     n_epochs = n_epochs or args.n_epochs
     root = Path(args.root)
+    print("train root=",root)
     model_path = root / 'model_{fold}.pt'.format(fold=fold)
     best_model_path = root / 'best-model_{fold}.pt'.format(fold=fold)
+    print('model path =', model_path)
+    print('best_model_path =', best_model_path)
     if model_path.exists():
         state = torch.load(str(model_path))
         epoch = state['epoch']
@@ -310,7 +313,7 @@ def train(args, model: nn.Module, criterion, *, train_loader, valid_loader,
 
         optimizer = init_optimizer(lr)
 
-        model.train() # 必须，将模型设置为训练模式
+        model.train()  # 必须，将模型设置为训练模式
         random.seed()
         tq = tqdm.tqdm(total=(args.epoch_size or
                               len(train_loader) * args.batch_size))

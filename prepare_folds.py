@@ -41,7 +41,6 @@ if __name__ == '__main__':
         (local_data_path / str(fold) / 'val' / 'images').mkdir(exist_ok=True, parents=True)
         (local_data_path / str(fold) / 'val' / 'masks').mkdir(exist_ok=True, parents=True)
 
-    print('folds.index=', folds.index)
 
     for i in tqdm(folds.index):
         image_id = folds.loc[i, 'image']
