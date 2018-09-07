@@ -1,6 +1,6 @@
 {
-  "input_data_dir": "~/Dev/SaltIdentificationChallenge/code/input/",
-  "submissions_dir": "~/Dev/SaltIdentificationChallenge/code/submissions/",
-  "models_dir": "~/Dev/SaltIdentificationChallenge/code/models/"
+  "input_data_dir": "~/tgs/TGS/input/",
+  "submissions_dir": "~/tgs/TGS/submissions/",
+  "models_dir": "~/tgs/TGS/models/"
 }
 
