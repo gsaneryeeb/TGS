@@ -111,18 +111,20 @@ class Loss:
     def __call__(self, outputs, targets):
         # print("Loss Function outputs=", outputs.size())
         # print("Loss Function targets=", targets.size())
-        loss = self.nll_loss(outputs, targets)
-        # print("Loss Function loss=", loss)
-        # if self.dice_weight:
-        #     print("dice_weight=",self.dice_weight)
-        #     eps = 1e-15
-        #     dice_target = (targets == 1).float()
-        #     print("Loss Function dice_target=", dice_target)
-        #     dice_output = outputs
-        #     intersection = (dice_output * dice_target).sum()
-        #     print("Loss Function intersection=", intersection)
-        #     union = dice_output.sum() + dice_target.sum() + eps
-        #     print("Loss Function union=", union)
-        #     # intersection = 0 有问题
-        #     loss -= torch.log(2 * intersection / union)
+        loss = self.nll_loss(outputs, targets)  # BCE Loss
+        print("Loss Function BCEloss=", loss)
+        if self.dice_weight:
+            print("dice_weight=", self.dice_weight)
+            eps = 1e-15
+            dice_target = (targets == 1).float()
+            print("Loss Function dice_target=", dice_target)
+            dice_output = outputs
+            intersection = (dice_output * dice_target).sum()
+            print("Loss Function intersection=", intersection)
+            union = dice_output.sum() + dice_target.sum() + eps
+            print("Loss Function union=", union)
+            # intersection = 0 有问题
+            # loss -= torch.log(2 * intersection / union)
+            loss = 1 + loss - (2 * intersection / union)
+            print("Loss Function TGS loss=", loss)
         return loss
