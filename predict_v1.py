@@ -41,7 +41,7 @@ def get_model(model_name):
     state = torch.load(
         str(config.MODELS_DIR / model_name / 'best-model_{fold}.pt'.format(fold=fold, model_name=model_name)))
     model.load_state_dict(state['model'])
-    model.eval()
+    model.eval() # 评估模式
 
     return model
 
@@ -88,7 +88,8 @@ if __name__ == '__main__':
     # Create validatition folder
     val_path = fold_path / 'val'
     val_path.mkdir(exist_ok=True, parents=True)
-
+    
+    # Create test folder
     test_path = fold_path / 'test'
     test_path.mkdir(exist_ok=True, parents=True)
 
@@ -97,11 +98,11 @@ if __name__ == '__main__':
 
     model = get_model(model_name)
 
-    val_images = sorted(list((Path(str(args.fold)) / 'val' / 'images').glob('*.jpg')))
+    val_images = sorted(list((Path(str(args.fold)) / 'val' / 'images').glob('*.png')))
     num_val = len(val_images)
     predict(model, val_images, batch_size, val_path)
 
-    test_images = sorted(list((data_path / 'test_hq').glob('*.jpg')))
+    test_images = sorted(list((data_path / 'test').glob('*.png')))
     num_test = len(test_images)
     predict(model, test_images, batch_size, test_path)
 

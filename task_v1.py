@@ -366,7 +366,7 @@ def train(args, model: nn.Module, criterion, *, train_loader, valid_loader,
                         save_predictions(root, p_i, inputs, targets, outputs)
             write_event(log, step, loss=mean_loss)
             tq.close()
-            save(epoch + 1)
+            save(epoch + 1) # Save model
             valid_metrics = validation(model, criterion, valid_loader)
             write_event(log, step, **valid_metrics)
             valid_loss = valid_metrics['valid_loss']
