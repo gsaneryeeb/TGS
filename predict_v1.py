@@ -10,7 +10,7 @@ import cv2
 from pathlib import Path
 import config
 import task_v1
-from config import config
+import config 
 import numpy as np
 
 from utils.unet_vgg_utils import UNet11
