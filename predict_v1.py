@@ -76,7 +76,7 @@ if __name__ == '__main__':
     args = parser.parse_args()
 
     model_path = config.MODELS_DIR
-    data_path = config.DATA_DIR
+    data_path = config.DATA_ROOT
 
     model_name = 'unet_11'
 
