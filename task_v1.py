@@ -24,6 +24,7 @@ import shutil
 from datetime import datetime
 
 from itertools import islice
+from config import config
 
 import torch
 
@@ -390,7 +391,7 @@ def main():
     arg('--device-ids', type=str, help='For example 0,1 to run on two GPUs')
     arg('--fold', type=int, help='fold', default=0)
     arg('--size', type=str, default='101x101', help='Input size, for example 288x384. Must be multiples of 32')
-    add_args(parser)
+    config.add_args(parser)
     args = parser.parse_args()
 
     model_name = 'unet_11'

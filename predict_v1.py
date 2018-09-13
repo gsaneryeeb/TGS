@@ -10,7 +10,7 @@ import cv2
 from pathlib import Path
 import config
 import task_v1
-from utils import utils
+from config import config
 import numpy as np
 
 from utils.unet_vgg_utils import UNet11
@@ -71,7 +71,7 @@ if __name__ == '__main__':
     arg = parser.add_argument
     arg('--fold', type=int)
 
-    utils.add_args(parser)
+    config.add_args(parser)
     args = parser.parse_args()
 
     model_path = config.MODELS_DIR
