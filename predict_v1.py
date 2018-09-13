@@ -8,12 +8,13 @@ import argparse
 import utils
 import cv2
 from pathlib import Path
-import config
+
 import task_v1
 import config 
 import numpy as np
 
 from utils.unet_vgg_utils import UNet11
+from utils.utils import utils
 
 import torch
 from torch import nn
@@ -70,8 +71,8 @@ if __name__ == '__main__':
     parser = argparse.ArgumentParser()
     arg = parser.add_argument
     arg('--fold', type=int)
-
-    config.add_args(parser)
+    
+    utils.add_args(parser)
     args = parser.parse_args()
 
     model_path = config.MODELS_DIR
