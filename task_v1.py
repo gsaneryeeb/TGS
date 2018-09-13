@@ -228,15 +228,7 @@ def grayscale_aug(image, mask):
     return rgb_img
 
 
-def add_args(parser):
-    arg = parser.add_argument
-    arg('--root', default='models/unet_11', help='checkpoint root')
-    arg('--batch-size', type=int, default=24)
-    arg('--n-epochs', type=int, default=100)
-    arg('--lr', type=float, default=0.0001)
-    arg('--workers', type=int, default=8)
-    arg('--clean', action='store_true')
-    arg('--epoch-size', type=int)
+
 
 
 # cyclic learning rate
@@ -391,7 +383,7 @@ def main():
     arg('--device-ids', type=str, help='For example 0,1 to run on two GPUs')
     arg('--fold', type=int, help='fold', default=0)
     arg('--size', type=str, default='101x101', help='Input size, for example 288x384. Must be multiples of 32')
-    config.add_args(parser)
+    utils.add_args(parser)
     args = parser.parse_args()
 
     model_name = 'unet_11'

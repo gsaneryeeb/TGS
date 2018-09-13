@@ -14,7 +14,7 @@ import config
 import numpy as np
 
 from utils.unet_vgg_utils import UNet11
-from utils.utils import utils
+from utils import utils
 
 import torch
 from torch import nn
