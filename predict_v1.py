@@ -83,6 +83,7 @@ if __name__ == '__main__':
 
     model_path = config.MODELS_DIR
     data_path = config.DATA_ROOT
+    print("DATA Path:", data_path)
 
     model_name = 'unet_11'
 
