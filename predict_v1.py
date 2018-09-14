@@ -71,7 +71,6 @@ def predict(model, from_paths, batch_size: int, to_path):
 if __name__ == '__main__':
     local_data_path = Path('.').absolute()
     local_data_path.mkdir(exist_ok=True)
-
     img_rows, img_cols = 101, 101
 
     parser = argparse.ArgumentParser()
@@ -93,11 +92,11 @@ if __name__ == '__main__':
     fold_path = pred_path / str(args.fold)
 
     # Create validatition folder
-    val_path = (local_data_path / fold_path / 'val')
+    val_path = fold_path / 'val'
     val_path.mkdir(exist_ok=True, parents=True)
     
     # Create test folder
-    test_path = (local_data_path / fold_path / 'test')
+    test_path = fold_path / 'test'
     test_path.mkdir(exist_ok=True, parents=True)
 
     print("Path val out put path:", val_path)
