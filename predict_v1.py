@@ -112,7 +112,7 @@ if __name__ == '__main__':
     num_val = len(val_images)
     predict(model, val_images, batch_size, val_path)
 
-    test_images = sorted(list((data_path / 'test').glob('*.png')))
+    test_images = sorted(list((data_path / 'test'/ 'images').glob('*.png')))
     num_test = len(test_images)
     predict(model, test_images, batch_size, test_path)
 
