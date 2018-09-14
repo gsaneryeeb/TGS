@@ -56,7 +56,7 @@ def predict(model, from_paths, batch_size: int, to_path):
         pin_memory=True
     )
 
-    for batch_num, (inputs, stems) in enumerate(tqdm(loader, desc='Predict')):
+    for batch_num, (inputs, stems) in enumerate(tqdm.tqdm(loader, desc='Predict')):
         inputs = task_v1.variable(inputs, volatile=True)
         outputs = model(inputs)
         mask = (outputs.data.cpu().numpy() * 255).astype(np.uint8)
