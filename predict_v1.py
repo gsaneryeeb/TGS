@@ -57,12 +57,12 @@ def predict(model, from_paths, batch_size: int, to_path):
     )
 
     for batch_num, (inputs, stems) in enumerate(tqdm.tqdm(loader, desc='Predict')):
-        print("predict_v1.py inputs size:", inputs.size())
+        # print("predict_v1.py inputs size:", inputs.size())
         inputs = task_v1.variable(inputs, volatile=True)
         outputs = model(inputs)
-        print("predict_v1.py outputs size:", outputs.size())
+        # print("predict_v1.py outputs size:", outputs.size())
         mask = (outputs.data.cpu().numpy() * 255).astype(np.uint8)
-        print("predict_v1.py mask :", mask)
+        # print("predict_v1.py mask :", mask)
         for i, image_name in enumerate(stems):
             print("predict image: ",str(to_path / (stems[i] + '.png')))
             cv2.imwrite(str(to_path / (stems[i] + '.png')), mask[i, 0, :, i:-1])
@@ -97,12 +97,14 @@ if __name__ == '__main__':
     test_path = fold_path / 'test'
     test_path.mkdir(exist_ok=True, parents=True)
 
+    print("Path val out put path:", val_path)
+    print("Path test out put path:", test_path)
     fold = args.fold
     batch_size = 2
 
     model = get_model(model_name)
 
-    val_images = sorted(list((Path(str(args.fold)) / 'val' / 'images').glob('*.png')))
+    val_images = sorted(list(Path(str(args.fold)) / 'val' / 'images').glob('*.png')))
     num_val = len(val_images)
     predict(model, val_images, batch_size, val_path)
 
