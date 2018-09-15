@@ -32,7 +32,7 @@ if __name__ == '__main__':
     model_name = 'unet_11'
 
     test_images = sorted(list((Path(model_name) / model_name / '0' / 'test').glob('*.png')))
-    print("tesy images length =", test_images.length)
+    print("tesy images length =", test_images.length())
 
     (config.SUBMISSION_PATH / model_name / 'test_averaged').mkdir(exist_ok=True, parents=True)
 
