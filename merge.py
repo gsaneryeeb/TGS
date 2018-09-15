@@ -21,7 +21,8 @@ def merge_test(file_name):
         result[fold] = img
 
     img = result.mean(axis=0).astype(np.uint8)
-
+    print("img:",img)
+    print("File Name:",file_name.stem)
     cv2.imwrite(str(config.SUBMISSION_PATH / 'tgsv1' / (file_name.stem + '.png')), img)
 
 
