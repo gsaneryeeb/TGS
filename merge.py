@@ -22,7 +22,7 @@ def merge_test(file_name):
 
     img = result.mean(axis=0).astype(np.uint8)
 
-    cv2.imwrite(str(config.SUBM_DIR / 'tgsv1' / (file_name.stem + '.png')), img)
+    cv2.imwrite(str(config.SUBMISSION_PATH / 'tgsv1' / (file_name.stem + '.png')), img)
 
 
 if __name__ == '__main__':
