@@ -60,7 +60,7 @@ def predict(model, from_paths, batch_size: int, to_path):
         # print("predict_v1.py inputs size:", inputs.size())
         inputs = task_v1.variable(inputs, volatile=True)
         outputs = model(inputs)
-        # print("predict_v1.py outputs size:", outputs.size())
+        print("predict_v1.py outputs size:", outputs.size())
         mask = (outputs.data.cpu().numpy() * 255).astype(np.uint8)
         # print("predict_v1.py mask :", mask)
         for i, image_name in enumerate(stems):

@@ -17,7 +17,6 @@ def merge_test(file_name):
     result = np.zeros((num_folds, 101, 101))
     for fold in range(num_folds):
         img_path = file_name.parent.parent.parent / str(fold) / 'test' / (file_name.stem + '.png')
-        print("img_path:",img_path)
         img = cv2.imread(str(img_path), 0)
         result[fold] = img
 
