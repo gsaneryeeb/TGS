@@ -70,7 +70,6 @@ def predict(model, from_paths, batch_size: int, to_path):
 if __name__ == '__main__':
     local_data_path = Path('.').absolute()
     local_data_path.mkdir(exist_ok=True)
-    img_rows, img_cols = 101, 101
 
     parser = argparse.ArgumentParser()
     arg = parser.add_argument
