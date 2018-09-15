@@ -31,8 +31,7 @@ if __name__ == '__main__':
     num_folds = 5
     model_name = 'unet_11'
 
-    test_images = sorted(list((Path(model_name) / model_name / '0' / 'test').glob('*.png')))
-    print("tesy images length =", test_images)
+    test_images = sorted(list((Path(model_name) / '0' / 'test').glob('*.png')))
 
     (config.SUBMISSION_PATH / model_name / 'test_averaged').mkdir(exist_ok=True, parents=True)
 
