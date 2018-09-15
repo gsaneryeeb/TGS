@@ -103,7 +103,7 @@ if __name__ == '__main__':
 
     model = get_model(model_name)
 
-    val_images = sorted(list((Path(str(args.fold)) / 'val' / 'images').glob('*.jpg')))
+    val_images = sorted(list((Path(str(args.fold)) / 'val' / 'images').glob('*.png')))
     num_val = len(val_images)
     predict(model, val_images, batch_size, val_path)
 
