@@ -64,7 +64,6 @@ def predict(model, from_paths, batch_size: int, to_path):
         mask = (outputs.data.cpu().numpy() * 255).astype(np.uint8)
         # print("predict_v1.py mask :", mask)
         for i, image_name in enumerate(stems):
-            print("predict image: ",str(to_path / (stems[i] + '.png')))
             cv2.imwrite(str(to_path / (stems[i] + '.png')), mask[i, 0, :, i:-1])
 
 
@@ -82,7 +81,6 @@ if __name__ == '__main__':
 
     model_path = config.MODELS_DIR
     data_path = config.DATA_ROOT
-    print("DATA Path:", data_path)
 
     model_name = 'unet_11'
 
@@ -100,8 +98,6 @@ if __name__ == '__main__':
     test_path = fold_path / 'test'
     test_path.mkdir(exist_ok=True, parents=True)
 
-    print("Path val out put path:", val_path)
-    print("Path test out put path:", test_path)
     fold = args.fold
     batch_size = 2
 

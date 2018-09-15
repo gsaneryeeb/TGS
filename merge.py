@@ -26,6 +26,7 @@ def merge_test(file_name):
 
 
 if __name__ == '__main__':
+    print("====Merge===")
     num_folds = 5
     model_name = 'unet_11'
 
