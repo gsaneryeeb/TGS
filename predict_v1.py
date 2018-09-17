@@ -62,8 +62,8 @@ def predict(model, from_paths, batch_size: int, to_path):
         outputs = model(inputs)  # shape (2, 3, 128, 128)
         mask = (outputs.data.cpu().numpy() * 255).astype(np.uint8) # shape(2, 3, 128, 128)
         for i, image_name in enumerate(stems):
-            print('mask :', mask)
-            print('mask image:', mask[i, 0, :, i:-1])
+            print('mask shape:', mask.shape)
+            print('mask image shape:', mask[i, 0, :, i:-1].shape)
             cv2.imwrite(str(to_path / (stems[i] + '.png')), mask[i, 0, :, i:-1])
 
 
