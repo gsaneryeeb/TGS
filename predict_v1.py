@@ -64,10 +64,29 @@ def predict(model, from_paths, batch_size: int, to_path):
         print("predict_v1.py outputs:", outputs)
         mask = (outputs.data.cpu().numpy() * 255).astype(np.uint8) # shape(2, 1, 128, 128) 恢复为原始数值
         for i, image_name in enumerate(stems):
+            height, width = 101, 101
+
+            if height % 32 == 0:
+                y_min_pad = 0
+                y_max_pad = 0
+            else:
+                y_pad = 32 - height % 32
+                y_min_pad = int(y_pad / 2)
+                y_max_pad = y_pad - y_min_pad
+
+            if width % 32 == 0:
+                x_min_pad = 0
+                x_max_pad = 0
+            else:
+                x_pad = 32 - width % 32
+                x_min_pad = int(x_pad / 2)
+                x_max_pad = x_pad - x_min_pad
+
             print('mask shape:', mask.shape)
             print('mask :', mask)
             print('mask image shape:', mask[i, 0, :, :].shape)
             print('mask image shape:', mask[i, 0, :, :])
+            print('mask image shape:', mask[i, 0, :, :][y_min_pad:128 - y_max_pad,x_min_pad:128-x_max_pad].shape) 
             cv2.imwrite(str(to_path / (stems[i] + '.png')), mask[i, 0, :, i:-1])
 
 
