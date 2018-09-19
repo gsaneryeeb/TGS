@@ -35,7 +35,7 @@ if __name__ == '__main__':
 
     test_images = sorted(list((Path(model_name) / '0' / 'test').glob('*.png')))
 
-    (config.SUBMISSION_PATH / model_name / 'test_averaged').mkdir(exist_ok=True, parents=True)
+    (config.SUBMISSION_PATH / 'tgsv1').mkdir(exist_ok=True, parents=True)
 
     Parallel(n_jobs=16)(delayed(merge)(x) for x in test_images)
 
