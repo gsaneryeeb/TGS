@@ -15,7 +15,7 @@ import config
 
 # 合并 fold 中的结果
 
-def merge_test(file_name):
+def merge(file_name):
     result = np.zeros((num_folds, 101, 101))
     for fold in range(num_folds):
         img_path = file_name.parent.parent.parent / str(fold) / 'test' / (file_name.stem + '.png')
@@ -23,8 +23,8 @@ def merge_test(file_name):
         result[fold] = img
 
     img = result.mean(axis=0).astype(np.uint8)
-    print("img:",img)
-    print("File Name:",file_name.stem)
+    # print("img:",img)
+    print("File :",str(config.SUBMISSION_PATH / 'tgsv1' / (file_name.stem + '.png')))
     cv2.imwrite(str(config.SUBMISSION_PATH / 'tgsv1' / (file_name.stem + '.png')), img)
 
 
@@ -37,5 +37,5 @@ if __name__ == '__main__':
 
     (config.SUBMISSION_PATH / model_name / 'test_averaged').mkdir(exist_ok=True, parents=True)
 
-    Parallel(n_jobs=16)(delayed(merge_test)(x) for x in test_images)
+    Parallel(n_jobs=16)(delayed(merge)(x) for x in test_images)
 

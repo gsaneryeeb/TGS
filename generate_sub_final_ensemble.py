@@ -140,10 +140,10 @@ def main():
     #     ('test_scratch2', 1.0),
     #     ('test_vgg11v1_final', 1.0),
     #     ('albu27.09', 1.0),
-    #     ('ternaus27', 1.0),
+    #     ('ternaus27', 1.0),  
     # ]
     probs_dirs = [
-        ('ternaus27', 1.0),
+        ('tgsv1', 1.0), # 存放第一步预测结果的文件夹
     ]
     w_sum = sum([x[1] for x in probs_dirs])
     print 'W_sum=', w_sum
