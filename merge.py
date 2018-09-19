@@ -13,8 +13,10 @@ from joblib import Parallel, delayed
 import config
 
 
+# 合并 fold 中的结果
+
 def merge_test(file_name):
-    result = np.zeros((num_folds, 128, 128))
+    result = np.zeros((num_folds, 101, 101))
     for fold in range(num_folds):
         img_path = file_name.parent.parent.parent / str(fold) / 'test' / (file_name.stem + '.png')
         img = cv2.imread(str(img_path), 0)

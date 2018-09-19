@@ -82,11 +82,11 @@ def predict(model, from_paths, batch_size: int, to_path):
                 x_min_pad = int(x_pad / 2)
                 x_max_pad = x_pad - x_min_pad
 
-            print('mask shape:', mask.shape)
-            print('mask :', mask)
-            print('mask image shape:', mask[i, 0, :, :].shape)
-            print('mask image shape:', mask[i, 0, :, :])
-            print('mask image shape:', mask[i, 0, :, :][y_min_pad:128 - y_max_pad,x_min_pad:128-x_max_pad].shape) 
+            # print('mask shape:', mask.shape)
+            # print('mask :', mask)
+            # print('mask image shape:', mask[i, 0, :, :].shape)
+            # print('mask image shape:', mask[i, 0, :, :])
+            # print('mask image shape:', mask[i, 0, :, :][y_min_pad:128 - y_max_pad,x_min_pad:128-x_max_pad].shape) 
             cv2.imwrite(str(to_path / (stems[i] + '.png')), mask[i, 0, :, :][y_min_pad:128 - y_max_pad,x_min_pad:128-x_max_pad])
 
 
