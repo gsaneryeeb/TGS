@@ -109,8 +109,8 @@ class Loss:
         self.dice_weight = dice_weight
 
     def __call__(self, outputs, targets):
-        print("Loss Function outputs size=", outputs.size())
-        print("Loss Function targets size=", targets.size())
+        # print("Loss Function outputs size=", outputs.size())
+        # print("Loss Function targets size=", targets.size())
         # print("Loss Function outputs=", outputs)
         # print("Loss Function targets=", targets)
 
