@@ -109,9 +109,13 @@ class Loss:
         self.dice_weight = dice_weight
 
     def __call__(self, outputs, targets):
-        # print("Loss Function outputs=", outputs.size())
-        # print("Loss Function targets=", targets.size())
+        print("Loss Function outputs size=", outputs.size())
+        print("Loss Function targets size=", targets.size())
+        print("Loss Function outputs=", outputs())
+        print("Loss Function targets=", targets())
+
         loss = self.nll_loss(outputs, targets)  # BCE Loss
+
         print("Loss Function BCEloss=", loss)
         if self.dice_weight:
             eps = 1e-15
