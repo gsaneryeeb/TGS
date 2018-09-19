@@ -57,9 +57,10 @@ def predict(model, from_paths, batch_size: int, to_path):
     )
 
     for batch_num, (inputs, stems) in enumerate(tqdm.tqdm(loader, desc='Predict')):
-        # print("predict_v1.py inputs size:", inputs.size())
+        print("predict_v1.py inputs size:", inputs.size())
         inputs = task_v1.variable(inputs, volatile=True)
         outputs = model(inputs)  # shape (2, 3, 128, 128)
+        print("predict_v1.py outputs size:", outputs.size())
         mask = (outputs.data.cpu().numpy() * 255).astype(np.uint8) # shape(2, 3, 128, 128)
         for i, image_name in enumerate(stems):
             print('mask shape:', mask.shape)
