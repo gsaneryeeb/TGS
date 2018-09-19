@@ -324,9 +324,9 @@ def train(args, model: nn.Module, criterion, *, train_loader, valid_loader,
             mean_loss = 0
             for i, (inputs, targets) in enumerate(tl):  # 从数据加载器迭代一个batch的数据
                 inputs, targets = variable(inputs), variable(targets)   # 使用GPU存储数据
-                outputs = model(inputs)  # 喂入数据并前向传播获取输出
                 print("task_v1.py L326 inputs size", inputs.size())
                 print("task_v1.py L326 targets size", targets.size())
+                outputs = model(inputs)  # 喂入数据并前向传播获取输出
                 print("task_v1.py L326 outputs size", outputs.size())
                 # TODO Error Check inputs, outputs , targets shapes
                 """ Kaggle 成功运行的维度
