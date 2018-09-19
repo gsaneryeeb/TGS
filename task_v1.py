@@ -127,7 +127,7 @@ def load_image(path: Path, mask=False):
         img = img[:, :, 0:1] // 255 # mask 图片只取一个通道值，因为三个通道值一样都为255（白色）
     else:
         img = np.asarray(img)
-    return img
+    return img.astype(np.float32)
 
 
     # # Version 2
