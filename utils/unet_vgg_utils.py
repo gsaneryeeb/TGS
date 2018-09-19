@@ -79,7 +79,7 @@ class UNet11(nn.Module):
         self.dec2 = DecoderBlock(num_filters * (4 + 2), num_filters * 2 * 2, num_filters)
         self.dec1 = ConvRelu(num_filters * (2 + 1), num_filters)
 
-        self.final = nn.Conv2d(num_filters, 3, kernel_size=1)  # 修改final的out参数输出为3，因为mask通道数为3，这里与y的通道数一致。
+        self.final = nn.Conv2d(num_filters, 1, kernel_size=1)  # 通道数设为1，这里与y的通道数一致。
 
     def forward(self, x):
         # 定义前向传播

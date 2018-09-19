@@ -68,7 +68,7 @@ class TGSDataset(Dataset):
 
         if self.is_test:
 
-            return (image,)
+            return (image,) # 测试数据取值时需要用image[0]
 
         else:
             mask = load_image(mask_path, mask=True)
@@ -117,13 +117,17 @@ def load_image(path: Path, mask=False):
     # BORDER_REFLECT_101: gfedcb | abcdefgh | gfedcba
     # BORDER_WRAP: cdefgh | abcdefgh | abcdefg
     # BORDER_CONSTANT: iiiiii | abcdefgh | iiiiiii with some specified 'i'
+    # 
+    # 将图片维度 padding 为 3x128x128
     img = cv2.copyMakeBorder(img, y_min_pad, y_max_pad, x_min_pad, x_max_pad, cv2.BORDER_REFLECT_101)
 
     # Version 3
     if mask:
-        img = (np.asarray(img) > 0).astype(np.float32)
+        # img = (np.asarray(img) > 0).astype(np.float32)
+        img = img[:, :, 0:1] // 255 # mask 图片只取一个通道值，因为三个通道值一样都为255（白色）
     else:
-        img = np.asarray(img)
+        # img = np.asarray(img)
+        img = img / 255.0
     return img
 
 
