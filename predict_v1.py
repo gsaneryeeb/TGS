@@ -87,7 +87,7 @@ def predict(model, from_paths, batch_size: int, to_path):
             print('mask image shape:', mask[i, 0, :, :].shape)
             print('mask image shape:', mask[i, 0, :, :])
             print('mask image shape:', mask[i, 0, :, :][y_min_pad:128 - y_max_pad,x_min_pad:128-x_max_pad].shape) 
-            cv2.imwrite(str(to_path / (stems[i] + '.png')), mask[i, 0, :, i:-1])
+            cv2.imwrite(str(to_path / (stems[i] + '.png')), mask[i, 0, :, :][y_min_pad:128 - y_max_pad,x_min_pad:128-x_max_pad])
 
 
 if __name__ == '__main__':
