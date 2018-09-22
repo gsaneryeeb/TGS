@@ -122,7 +122,7 @@ def create_submission(df, output_path):
     assert len(df) == len(sample_subm), 'wrong len'
     assert sorted(sample_subm.img.values) == sorted(df.img.values), 'img names differ!'
     df.to_csv('{}.gz'.format(output_path), index=False, compression='gzip')
-    print 'Saved submission file in {}'.format('{}.gz'.format(output_path))
+    print('Saved submission file in {}'.format('{}.gz'.format(output_path)))
 
 # 主程序
 def main():
@@ -146,21 +146,21 @@ def main():
         ('tgsv1', 1.0), # 存放第一步预测结果的文件夹
     ]
     w_sum = sum([x[1] for x in probs_dirs]) # 各部分预测的权重
-    print 'W_sum=', w_sum
+    print ('W_sum=', w_sum)
     probs_dirs = map(lambda x: (Path(join(config.submissions_dir, x[0])), float(x[1]) / w_sum), probs_dirs)
-    print 'Weights:', [x[1] for x in probs_dirs]
+    print ('Weights:', [x[1] for x in probs_dirs])
     output_dir = Path(config.submissions_dir) / ('ens_scratch2(1)_v1-final(1)_al27(1)_te27(1)')
 
     with open(str(output_dir) + '.txt', mode='w') as f:
         f.write('Following models were averaged:\n')
         for l, w in probs_dirs:
             f.write(str(l) + '; weight={}\n'.format(w))
-            print str(l.stem) + '; weight={}\n'.format(w)
-    print '===='
+            print (str(l.stem) + '; weight={}\n'.format(w))
+    print ('====')
     test_pathes = CARVANA.get_test_paths(is_hq=True)
 
-    print 'Reading from', map(str, probs_dirs)
-    print 'output_dir', output_dir
+    print ('Reading from', map(str, probs_dirs))
+    print ('output_dir', output_dir)
 
     if not args.load:
         fd = delayed(average_from_files)
