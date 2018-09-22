@@ -146,7 +146,7 @@ def main():
     ]
     w_sum = sum([x[1] for x in probs_dirs]) # 各部分预测的权重
     print ('W_sum=', w_sum)
-    probs_dirs = map(lambda x: (Path(join(config.submissions_dir, x[0])), float(x[1]) / w_sum), probs_dirs)
+    probs_dirs = map(lambda x: (Path(join(config.SUBMISSION_PATH, x[0])), float(x[1]) / w_sum), probs_dirs)
     print ('Weights:', [x[1] for x in probs_dirs])
     output_dir = Path(config.submissions_dir) / ('ens_scratch2(1)_v1-final(1)_al27(1)_te27(1)')
 
