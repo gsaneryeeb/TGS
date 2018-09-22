@@ -13,7 +13,6 @@ from sklearn.utils import gen_even_slices
 import config
 from utils.utils import rle_encode
 from utils.utils import rle_to_string
-from asanakoy.dataset import CARVANA
 
 
 def biggest_contour(im):
