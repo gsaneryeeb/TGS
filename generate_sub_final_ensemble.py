@@ -124,13 +124,13 @@ def create_submission(df, output_path):
     df.to_csv('{}.gz'.format(output_path), index=False, compression='gzip')
     print 'Saved submission file in {}'.format('{}.gz'.format(output_path))
 
-
+# 主程序
 def main():
     parser = argparse.ArgumentParser()
     parser.add_argument('-j', '--n_jobs', type=int, default=1, metavar='N',
-                        help='number of parallel jobs')
+                        help='number of parallel jobs')  # 并行设置
     parser.add_argument('--load', action='store_true',
-                        help='load pregenerated probs from folder?')
+                        help='load pregenerated probs from folder?') 
     parser.add_argument('--no_save', action='store_true',
                         help='not save probs as pngs?')
 
@@ -145,7 +145,7 @@ def main():
     probs_dirs = [
         ('tgsv1', 1.0), # 存放第一步预测结果的文件夹
     ]
-    w_sum = sum([x[1] for x in probs_dirs])
+    w_sum = sum([x[1] for x in probs_dirs]) # 各部分预测的权重
     print 'W_sum=', w_sum
     probs_dirs = map(lambda x: (Path(join(config.submissions_dir, x[0])), float(x[1]) / w_sum), probs_dirs)
     print 'Weights:', [x[1] for x in probs_dirs]
