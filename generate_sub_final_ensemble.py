@@ -11,8 +11,8 @@ from joblib import delayed
 from sklearn.utils import gen_even_slices
 
 import config
-from asanakoy.data_utils import rle_encode
-from asanakoy.data_utils import rle_to_string
+from utils.utils import rle_encode
+from utils.utils import rle_to_string
 from asanakoy.dataset import CARVANA
 
 
@@ -157,7 +157,7 @@ def main():
             f.write(str(l) + '; weight={}\n'.format(w))
             print (str(l.stem) + '; weight={}\n'.format(w))
     print ('====')
-    test_pathes = CARVANA.get_test_paths(is_hq=True)
+    test_pathes = str(config.DATA_ROOT) / 'test' 
 
     print ('Reading from', map(str, probs_dirs))
     print ('output_dir', output_dir)
