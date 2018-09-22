@@ -5,7 +5,7 @@ import os
 import pandas as pd
 from os.path import join
 import cv2
-from pathlib2 import Path
+from pathlib import Path
 from joblib import Parallel
 from joblib import delayed
 from sklearn.utils import gen_even_slices
