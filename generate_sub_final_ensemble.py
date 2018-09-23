@@ -156,8 +156,8 @@ def main():
             f.write(str(l) + '; weight={}\n'.format(w))
             print (str(l.stem) + '; weight={}\n'.format(w))
     print ('====')
-    test_pathes = str(config.DATA_ROOT) / 'test' 
-
+    test_pathes = Path(config.DATA_ROOT) / ('test')
+    
     print ('Reading from', map(str, probs_dirs))
     print ('output_dir', output_dir)
 
