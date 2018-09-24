@@ -61,14 +61,15 @@ def merge(file_name):
     result = np.zeros((num_folds, 101, 101))
     for fold in range(num_folds):
         # TODO: 1. 每个 fold 作为一组：比较 val 与 val mask 计算 该 fold 内 threshold。
-        val_pred_path = file_name.parent.parent / str(fold) / 'val'
+        val_pred_path = file_name.parent.parent / str(fold) / 'val'       # unet_11/0/1/val
         # val_mask_path = ''
-        pred_path = file_name.parent.parent / str(fold) / 'test'
-        print('val_pred_path', val_pred_path)
-        print('pred_path', pred_path)
+        pred_path = file_name.parent.parent / str(fold) / 'test'         # unet_11/0/1/test
+        print('val_pred_path:', val_pred_path)
+        print('pred_path:', pred_path)
         # TODO: 2. 根据 threshold 修改该 fold 内的 pred 值
         # TODO: 3. 5 个 threshold 后的 pred 取 mean
         img_path = file_name.parent.parent.parent / str(fold) / 'test' / (file_name.stem + '.png')
+        print('im_path:', img_path)
         img = cv2.imread(str(img_path), 0)
         result[fold] = img
 
