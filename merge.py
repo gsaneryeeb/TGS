@@ -67,9 +67,9 @@ def merge(file_name):
         print('val_pred_path:', val_pred_path)
         print('pred_path:', pred_path)
         print('val_mask_path:', val_mask_path)
-        val_pred_images = sorted(list((file_name.parent.parent.parent / str(fold) / 'val' / 'images').glob('*.png')))
+        val_pred_images = sorted(list((file_name.parent.parent.parent / str(fold) / 'val').glob('*.png')))
         val_mask_imges = sorted(list((Path('.').absolute() / str(fold) / 'val' / 'images').glob('*.png')))
-        pred_images = sorted(list((file_name.parent.parent.parent / str(fold) / 'test' / 'images').glob('*.png')))
+        pred_images = sorted(list((file_name.parent.parent.parent / str(fold) / 'test').glob('*.png')))
 
         print('val_pred_images:', len(val_pred_images))
         print('val_mask_imges:', len(val_mask_imges))
