@@ -78,7 +78,7 @@ def merge(file_name):
 
     # TODO: 4. mean 后输出submission
     img = result.mean(axis=0).astype(np.uint8)
-    print("img:",img)
+    print("img:",img//255)
     print("File :",str(config.SUBMISSION_PATH / 'tgsv1' / (file_name.stem + '.png')))
     cv2.imwrite(str(config.SUBMISSION_PATH / 'tgsv1' / (file_name.stem + '.png')), img)
 
