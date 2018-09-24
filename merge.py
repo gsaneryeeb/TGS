@@ -61,9 +61,9 @@ def merge(file_name):
     result = np.zeros((num_folds, 101, 101))
     for fold in range(num_folds):
         # TODO: 1. 每个 fold 作为一组：比较 val 与 val mask 计算 该 fold 内 threshold。
-        val_pred_path = file_name.parent.parent.parent / str(fold) / 'val'       # unet_11/0/1/val
-        val_mask_path = str(config.DATA_ROOT)
-        pred_path = file_name.parent.parent.parent / str(fold) / 'test'         # unet_11/0/1/test
+        val_pred_path = file_name.parent.parent.parent / str(fold) / 'val'       # unet_11/1/val
+        val_mask_path = Path('.').absolute() / str(fold)
+        pred_path = file_name.parent.parent.parent / str(fold) / 'test'         # unet_11/1/test
         print('val_pred_path:', val_pred_path)
         print('pred_path:', pred_path)
         print('val_mask_path:', val_mask_path)
