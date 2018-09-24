@@ -61,19 +61,13 @@ def merge(file_name):
     result = np.zeros((num_folds, 101, 101))
     for fold in range(num_folds):
         # TODO: 1. 每个 fold 作为一组：比较 val 与 val mask 计算 该 fold 内 threshold。
-        val_pred_path = file_name.parent.parent.parent / str(fold) / 'val'       # unet_11/1/val
-        val_mask_path = Path('.').absolute() / str(fold)
-        pred_path = file_name.parent.parent.parent / str(fold) / 'test'         # unet_11/1/test
-        print('val_pred_path:', val_pred_path)
-        print('pred_path:', pred_path)
-        print('val_mask_path:', val_mask_path)
         val_pred_images = sorted(list((file_name.parent.parent.parent / str(fold) / 'val').glob('*.png')))
         val_mask_imges = sorted(list((Path('.').absolute() / str(fold) / 'val' / 'images').glob('*.png')))
         pred_images = sorted(list((file_name.parent.parent.parent / str(fold) / 'test').glob('*.png')))
 
-        print('val_pred_images:', len(val_pred_images))
-        print('val_mask_imges:', len(val_mask_imges))
-        print('pred_images:', len(pred_images))
+        # print('val_pred_images:', len(val_pred_images))
+        # print('val_mask_imges:', len(val_mask_imges))
+        # print('pred_images:', len(pred_images))
 
         # TODO: 2. 根据 threshold 修改该 fold 内的 pred 值
         # TODO: 3. 5 个 threshold 后的 pred 取 mean
@@ -84,7 +78,7 @@ def merge(file_name):
 
     # TODO: 4. mean 后输出submission
     img = result.mean(axis=0).astype(np.uint8)
-    # print("img:",img)
+    print("img:",img)
     print("File :",str(config.SUBMISSION_PATH / 'tgsv1' / (file_name.stem + '.png')))
     cv2.imwrite(str(config.SUBMISSION_PATH / 'tgsv1' / (file_name.stem + '.png')), img)
 
