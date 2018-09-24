@@ -67,6 +67,13 @@ def merge(file_name):
         print('val_pred_path:', val_pred_path)
         print('pred_path:', pred_path)
         print('val_mask_path:', val_mask_path)
+        val_pred_images = sorted(list((file_name.parent.parent.parent / str(fold) / 'val' / 'images').glob('*.png')))
+        val_mask_imges = sorted(list((Path('.').absolute / str(fold) / 'val' / 'images').glob('*.png')))
+        pred_images = sorted(list((file_name.parent.parent.parent / str(fold) / 'test' / 'images').glob('*.png')))
+
+        print('val_pred_images:', len(val_pred_images))
+        print('val_mask_imges:', len(val_mask_imges))
+        print('pred_images:', len(pred_images))
 
         # TODO: 2. 根据 threshold 修改该 fold 内的 pred 值
         # TODO: 3. 5 个 threshold 后的 pred 取 mean
