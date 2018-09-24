@@ -12,7 +12,7 @@ import numpy as np
 from joblib import Parallel, delayed
 import config
 
-from sklearn.metrics import jacard_similarity_score
+from sklearn.metrics import jaccard_similarity_score
 
 def threshold(val_predictions, val_masks):
     metric_by_threshold = []
