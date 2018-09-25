@@ -47,7 +47,7 @@ class TGSDataset(Dataset):
         self.is_test = is_test
         self.to_augment = to_augment
         self.image_paths = sorted(root.joinpath('images').glob('*.png'))
-        self.mask_paths = sorted(root.joinpath('mask').glob('*.png'))
+        self.mask_paths = sorted(root.joinpath('masks').glob('*.png'))
 
     def __len__(self):
         return len(self.image_paths)
