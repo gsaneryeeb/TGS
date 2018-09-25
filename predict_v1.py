@@ -90,7 +90,7 @@ def predict(model, from_paths, batch_size: int, to_path):
             # print('mask image shape:', mask[i, 0, :, :])
             # print('mask image shape:', mask[i, 0, :, :][y_min_pad:128 - y_max_pad,x_min_pad:128-x_max_pad].shape) 
             cv2.imwrite(str(to_path / (stems[i] + '.png')), mask[i, 0, :, :][y_min_pad:128 - y_max_pad,x_min_pad:128-x_max_pad])
-        print("all_prediction:", all_predictions)
+    print("all_prediction:", all_predictions)
 
 if __name__ == '__main__':
     local_data_path = Path('.').absolute()
