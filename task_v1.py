@@ -54,8 +54,8 @@ class TGSDataset(Dataset):
 
     def __getitem__(self, index):
 
-        print('Image length:', len(self.image_paths))
-        print('Mask length:', len(self.mask_paths))
+        # print('Image length:', len(self.image_paths))
+        # print('Mask length:', len(self.mask_paths))
         image = load_image(self.image_paths[index])
 
         if self.is_test:
@@ -268,11 +268,11 @@ def train(args, model: nn.Module, criterion, *, train_loader, valid_loader,
 
     n_epochs = n_epochs or args.n_epochs
     root = Path(args.root)
-    print("train root=",root)
+    # print("train root=",root)
     model_path = root / 'model_{fold}.pt'.format(fold=fold)
     best_model_path = root / 'best-model_{fold}.pt'.format(fold=fold)
-    print('model path =', model_path)
-    print('best_model_path =', best_model_path)
+    # print('model path =', model_path)
+    # print('best_model_path =', best_model_path)
     if model_path.exists():
         state = torch.load(str(model_path))
         epoch = state['epoch']
@@ -315,10 +315,10 @@ def train(args, model: nn.Module, criterion, *, train_loader, valid_loader,
             mean_loss = 0
             for i, (inputs, targets) in enumerate(tl):  # 从数据加载器迭代一个batch的数据
                 inputs, targets = variable(inputs), variable(targets)   # 使用GPU存储数据
-                print("task_v1.py L326 inputs size", inputs.size())
-                print("task_v1.py L326 targets size", targets.size())
+                # print("task_v1.py L326 inputs size", inputs.size())
+                # print("task_v1.py L326 targets size", targets.size())
                 outputs = model(inputs)  # 喂入数据并前向传播获取输出
-                print("task_v1.py L326 outputs size", outputs.size())
+                # print("task_v1.py L326 outputs size", outputs.size())
                 # TODO Error Check inputs, outputs , targets shapes
                 """ Kaggle 成功运行的维度
                 image size torch.Size([30, 3, 128, 128])
@@ -334,7 +334,7 @@ def train(args, model: nn.Module, criterion, *, train_loader, valid_loader,
                 # outputs size =  torch.Size([4, 1, 128, 128])
                 # targets size =  torch.Size([4, 1, 128, 128])
                 loss = criterion(outputs, targets)  # 调用损失函数计算损失
-                print("loss =", loss)
+                # print("loss =", loss)
                 optimizer.zero_grad()  # 清除所有优化的梯度
                 batch_size = inputs.size(0)
                 step += 1
