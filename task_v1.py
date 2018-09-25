@@ -54,6 +54,8 @@ class TGSDataset(Dataset):
 
     def __getitem__(self, index):
 
+        print('Image length:', len(self.image_paths))
+        print('Mask length:', len(self.mask_paths))
         image = load_image(self.image_paths[index])
 
         if self.is_test:
