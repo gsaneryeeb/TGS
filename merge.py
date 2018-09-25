@@ -77,10 +77,10 @@ def merge(file_name):
         result[fold] = img
 
     # TODO: 4. mean 后输出submission
-    img_1 = result.mean(aixs=0) // 255
+    img_1 = result.mean(axis=0) // 255
     print("img_1:", img_1)
     img = result.mean(axis=0).astype(np.uint8)
-    print("img:",img)
+    print("img:", img)
     print("File :",str(config.SUBMISSION_PATH / 'tgsv1' / (file_name.stem + '.png')))
     cv2.imwrite(str(config.SUBMISSION_PATH / 'tgsv1' / (file_name.stem + '.png')), img)
 

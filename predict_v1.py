@@ -61,7 +61,7 @@ def predict(model, from_paths, batch_size: int, to_path):
         inputs = task_v1.variable(inputs, volatile=True)
         outputs = model(inputs)  # shape (2, 1, 128, 128)
         # print("predict_v1.py outputs size:", outputs.size())
-        print("predict_v1.py outputs:", outputs)
+        # print("predict_v1.py outputs:", outputs)
         mask = (outputs.data.cpu().numpy() * 255).astype(np.uint8) # shape(2, 1, 128, 128) 恢复为原始数值
         for i, image_name in enumerate(stems):
             height, width = 101, 101
