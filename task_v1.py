@@ -410,8 +410,8 @@ def main():
     # file_list_valid = file_list[::10]
     # file_list_train = [f for f in file_list if f not in file_list_valid]
 
-    train_root = Path('.').absolute() / str(arg.fold) / 'train'
-    valid_root = Path('.').absolute() / str(arg.fold) / 'val' 
+    train_root = Path('.').absolute() / str(args.fold) / 'train'
+    valid_root = Path('.').absolute() / str(args.fold) / 'val' 
 
     valid_loader = make_loader(valid_root)
     train_loader = make_loader(train_root, is_test=False, to_augment=False, shuffle=True)

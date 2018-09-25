@@ -19,7 +19,7 @@ if __name__ == '__main__':
 
     local_data_path = Path('.').absolute()
 
-    print('local_data_path',local_data_path)
+    # print('local_data_path',local_data_path)
 
     local_data_path.mkdir(exist_ok=True)
 
@@ -33,7 +33,7 @@ if __name__ == '__main__':
 
     num_folds = folds['fold'].nunique()
 
-    print("num_folds", num_folds)
+    # print("num_folds", num_folds)
 
     for fold in range(num_folds):
 
