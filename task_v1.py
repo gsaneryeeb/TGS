@@ -43,35 +43,25 @@ cuda_is_available = torch.cuda.is_available()
 
 
 class TGSDataset(Dataset):
-    def __init__(self, root_path, file_list, to_augment=False, is_test=False):
+    def __init__(self, root: Path, to_augment=False, is_test=False):
         self.is_test = is_test
-        self.root_path = root_path
-        self.file_list = file_list
         self.to_augment = to_augment
+        self.image_paths = sorted(root.joinpath('images').glob('*.png'))
+        self.mask_paths = sorted(root.joinpath('mask').glob('*.png'))
 
     def __len__(self):
-        return len(self.file_list)
+        return len(self.image_paths)
 
     def __getitem__(self, index):
-        if index not in range(0, len(self.file_list)):
-            return self.__getitem__(np.random.randint(0, self.__len__()))
 
-        file_id = self.file_list[index]
-
-        image_folder = os.path.join(self.root_path, "images")
-        image_path = os.path.join(image_folder, file_id + ".png")
-
-        mask_folder = os.path.join(self.root_path, "masks")
-        mask_path = os.path.join(mask_folder, file_id + ".png")
-
-        image = load_image(image_path)
+        image = load_image(self.image_paths[index])
 
         if self.is_test:
 
             return (image,) # 测试数据取值时需要用image[0]
 
         else:
-            mask = load_image(mask_path, mask=True)
+            mask = load_image(self.mask_paths[index], mask=True)
             if self.to_augment:
                 image, mask = augment(image, mask)
 
@@ -404,10 +394,9 @@ def main():
 
     loss = Loss()
 
-    def make_loader(ds_root: Path, file_list, is_test=False, to_augment=False, shuffle=False):
-
+    def make_loader(ds_root: Path, is_test=False, to_augment=False, shuffle=False):
         return DataLoader(
-            dataset=TGSDataset(ds_root, file_list, is_test=is_test, to_augment=to_augment),
+            dataset=TGSDataset(ds_root, is_test=is_test, to_augment=to_augment),
             shuffle=shuffle,
             num_workers=args.workers,
             batch_size=args.batch_size,
@@ -421,9 +410,11 @@ def main():
     # file_list_valid = file_list[::10]
     # file_list_train = [f for f in file_list if f not in file_list_valid]
 
-    train_root = 
-    valid_loader = make_loader(train_root, file_list_valid)
-    train_loader = make_loader(train_root, file_list_train, is_test=False, to_augment=False, shuffle=True)
+    train_root = Path('.').absolute() / str(arg.fold) / 'train'
+    valid_root = Path('.').absolute() / str(arg.fold) / 'val' 
+
+    valid_loader = make_loader(valid_root)
+    train_loader = make_loader(train_root, is_test=False, to_augment=False, shuffle=True)
 
     train(
         init_optimizer=lambda lr: Adam(model.parameters(), lr=lr),
