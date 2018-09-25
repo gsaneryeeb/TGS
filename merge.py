@@ -72,13 +72,11 @@ def merge(file_name):
         # TODO: 2. 根据 threshold 修改该 fold 内的 pred 值
         # TODO: 3. 5 个 threshold 后的 pred 取 mean
         img_path = file_name.parent.parent.parent / str(fold) / 'test' / (file_name.stem + '.png')
-        print('im_path:', img_path)
+        # print('im_path:', img_path)
         img = cv2.imread(str(img_path), 0)
         result[fold] = img
 
     # TODO: 4. mean 后输出submission
-    img_1 = result.mean(axis=0) // 255
-    print("img_1:", img_1)
     img = result.mean(axis=0).astype(np.uint8)
     print("img:", img)
     print("File :",str(config.SUBMISSION_PATH / 'tgsv1' / (file_name.stem + '.png')))
