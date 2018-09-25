@@ -56,6 +56,23 @@ def predict(model, from_paths, batch_size: int, to_path):
         num_workers=args.workers,
         pin_memory=True
     )
+    height, width = 101, 101
+
+    if height % 32 == 0:
+        y_min_pad = 0
+        y_max_pad = 0
+    else:
+        y_pad = 32 - height % 32
+        y_min_pad = int(y_pad / 2)
+        y_max_pad = y_pad - y_min_pad
+
+    if width % 32 == 0:
+        x_min_pad = 0
+        x_max_pad = 0
+    else:
+        x_pad = 32 - width % 32
+        x_min_pad = int(x_pad / 2)
+        x_max_pad = x_pad - x_min_pad
 
     for batch_num, (inputs, stems) in enumerate(tqdm.tqdm(loader, desc='Predict')):
         # print("predict_v1.py inputs size:", inputs.size()) # input size(2,3,128,128)
@@ -66,23 +83,7 @@ def predict(model, from_paths, batch_size: int, to_path):
         all_predictions.append(outputs.cpu().detach().numpy())
         mask = (outputs.data.cpu().numpy() * 255).astype(np.uint8) # shape(2, 1, 128, 128) 恢复为原始数值
         for i, image_name in enumerate(stems):
-            height, width = 101, 101
-
-            if height % 32 == 0:
-                y_min_pad = 0
-                y_max_pad = 0
-            else:
-                y_pad = 32 - height % 32
-                y_min_pad = int(y_pad / 2)
-                y_max_pad = y_pad - y_min_pad
-
-            if width % 32 == 0:
-                x_min_pad = 0
-                x_max_pad = 0
-            else:
-                x_pad = 32 - width % 32
-                x_min_pad = int(x_pad / 2)
-                x_max_pad = x_pad - x_min_pad
+            
 
             # print('mask shape:', mask.shape)
             # print('mask :', mask)
@@ -90,7 +91,11 @@ def predict(model, from_paths, batch_size: int, to_path):
             # print('mask image shape:', mask[i, 0, :, :])
             # print('mask image shape:', mask[i, 0, :, :][y_min_pad:128 - y_max_pad,x_min_pad:128-x_max_pad].shape) 
             cv2.imwrite(str(to_path / (stems[i] + '.png')), mask[i, 0, :, :][y_min_pad:128 - y_max_pad,x_min_pad:128-x_max_pad])
-    print("all_prediction:", all_predictions)
+    # print("all_prediction:", all_predictions)
+    all_predictions_stacked = np.vstack(all_predictions)[:, 0, :, :]  # 降维
+    all_predictions_stacked = all_predictions_stacked[:, y_min_pad:128 - y_max_pad, x_min_pad:128 - x_max_pad] # Padding 128x128 --> 101x101
+    print("all_preidction shape:", all_predictions_stacked.shape)
+    return all_predictions_stacked
 
 if __name__ == '__main__':
     local_data_path = Path('.').absolute()
@@ -129,10 +134,13 @@ if __name__ == '__main__':
 
     val_images = sorted(list((Path(str(args.fold)) / 'val' / 'images').glob('*.png')))
     num_val = len(val_images)
-    predict(model, val_images, batch_size, val_path)
+    val_pred_masks = predict(model, val_images, batch_size, val_path)
+    print("val_pred_masks shape", val_pred_masks.shape)
 
     test_images = sorted(list((data_path / 'test'/ 'images').glob('*.png')))
     num_test = len(test_images)
-    predict(model, test_images, batch_size, test_path)
+    pred_maks = predict(model, test_images, batch_size, test_path)
+    print("pred_maks shape", pred_maks.shape)
+    
 
 
