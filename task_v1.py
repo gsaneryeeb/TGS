@@ -414,13 +414,14 @@ def main():
             pin_memory=True
         )
 
-    train_df = pd.read_csv(os.path.join(config.DATA_ROOT, 'train.csv'))
+    # train_df = pd.read_csv(os.path.join(config.DATA_ROOT, 'train.csv'))
 
-    train_root = os.path.join(config.DATA_ROOT, 'train')
-    file_list = list(train_df['id'].values)
-    file_list_valid = file_list[::10]
-    file_list_train = [f for f in file_list if f not in file_list_valid]
+    # train_root = os.path.join(config.DATA_ROOT, 'train')
+    # file_list = list(train_df['id'].values)
+    # file_list_valid = file_list[::10]
+    # file_list_train = [f for f in file_list if f not in file_list_valid]
 
+    train_root = 
     valid_loader = make_loader(train_root, file_list_valid)
     train_loader = make_loader(train_root, file_list_train, is_test=False, to_augment=False, shuffle=True)
 

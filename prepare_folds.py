@@ -19,6 +19,8 @@ if __name__ == '__main__':
 
     local_data_path = Path('.').absolute()
 
+    print('local_data_path',local_data_path)
+
     local_data_path.mkdir(exist_ok=True)
 
     train_path = global_data_path / 'train' / 'images'
