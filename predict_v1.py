@@ -159,7 +159,12 @@ if __name__ == '__main__':
     num_test = len(test_images)
     pred_maks = predict(model, test_images, batch_size, test_path)
 
-    submit = pd.DataFrame([test_file_list, list(pred_maks)])
+    all_fold_masks = []
+    for p_mask in list(pred_maks):
+        all_fold_masks.append(' '.join(map(str, p_mask)))
+
+
+    submit = pd.DataFrame([test_file_list, all_fold_masks])
     submit.columns = ['id','mask']
     submit.to_csv(str(config.SUBMISSION_PATH / 'tgsv1' / str(fold)+'.csv'), index=False)
     #sub
