@@ -12,6 +12,7 @@ from pathlib import Path
 import task_v1
 import config 
 import numpy as np
+import pandas as pd
 
 from utils.unet_vgg_utils import UNet11
 from utils import utils
@@ -168,4 +169,3 @@ if __name__ == '__main__':
     submit.columns = ['id','rle_mask']
     submit_file_name = 'submit_'+str(fold)+'.csv'
     submit.to_csv(submit_file_name, index=False)
-
