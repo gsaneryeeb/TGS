@@ -37,7 +37,8 @@ def merge(file_name):
     for fold in range(num_folds):
         csv_path = file_name.parent.parent.parent 
         print('csv_path',csv_path)
-        df = pd.read_csv()
+        df = pd.read_csv(str(str(csv_path) / (str(fold)+'.csv')), header=None, sep=',')
+        print(df.head())
 
 
 if __name__ == '__main__':

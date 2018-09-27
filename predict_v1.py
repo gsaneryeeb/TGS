@@ -164,7 +164,7 @@ if __name__ == '__main__':
         all_fold_masks.append(' '.join(map(str, p_mask)))
 
 
-    submit = pd.DataFrame([test_file_list, all_fold_masks])
+    submit = pd.DataFrame([test_file_list, all_fold_masks]).T
     submit.columns = ['id','mask']
     submit.to_csv(str(config.SUBMISSION_PATH / 'tgsv1' / str(fold)+'.csv'), index=False)
     print('========finished=========')
