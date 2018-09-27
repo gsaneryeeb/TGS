@@ -46,9 +46,17 @@ def get_model(model_name):
 
     return model
 
+def rle_encoding(x):
+    dots = np.where(x.T.flatten() == 1)[0]
+    run_lengths = []
+    prev = -2
+    for b in dots:
+        if (b > prev+1): run_lengths.extend((b + 1, 0))
+        run_lengths[-1] += 1
+        prev = b
+    return run_lengths
 
 def predict(model, from_paths, batch_size: int, to_path):
-    print('from_paths:',from_paths)
     all_predictions = []
     loader = DataLoader(
         dataset=PredictionDatasetPure(from_paths),
@@ -140,11 +148,24 @@ if __name__ == '__main__':
     num_val = len(val_images)
     val_pred_masks = predict(model, val_images, batch_size, val_path)
 
+    # TODO 获取每个fold的mask文件计算
     # val_masks = task_v1.load_image(val_masks_path, mask=True)
 
     test_images = sorted(list((data_path / 'test'/ 'images').glob('*.png')))
+    
     num_test = len(test_images)
     pred_maks = predict(model, test_images, batch_size, test_path)
     
-
+    #sub
+    threshold = 0.5
+    binary_prediction = (all_predictions_stacked > threshold).astype(int)
+    
+    all_fold_masks = []
+    for p_mask in list(binary_prediction):
+        p_mask = rle_encoding(p_mask)
+        all_fold_masks.append(' '.join(map(str, p_mask)))
+    submit = pd.DataFrame([test_images, all_fold_masks]).T
+    submit.columns = ['id','rle_mask']
+    submit_file_name = 'submit_'+str(fold)+'.csv'
+    submit.to_csv(submit_file_name, index=False)
 
