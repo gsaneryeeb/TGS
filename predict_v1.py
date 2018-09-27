@@ -135,12 +135,13 @@ if __name__ == '__main__':
     val_images = sorted(list((Path(str(args.fold)) / 'val' / 'images').glob('*.png')))
     num_val = len(val_images)
     val_pred_masks = predict(model, val_images, batch_size, val_path)
-    print("val_pred_masks shape", val_pred_masks.shape)
+    print("val_pred_masks shape", val_pred_masks.shape) # shape(800,101,101)
 
     test_images = sorted(list((data_path / 'test'/ 'images').glob('*.png')))
     num_test = len(test_images)
+    print("num_test:",num_test)
     pred_maks = predict(model, test_images, batch_size, test_path)
-    print("pred_maks shape", pred_maks.shape)
+    print("pred_maks shape", pred_maks.shape) # shape(800,101,101)
     
 
 
