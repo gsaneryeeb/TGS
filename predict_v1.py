@@ -166,7 +166,8 @@ if __name__ == '__main__':
 
     submit = pd.DataFrame([test_file_list, all_fold_masks]).T
     submit.columns = ['id','mask']
-    submit.to_csv(str(config.SUBMISSION_PATH / 'tgsv1' / str(fold)+'.csv'), index=False)
+    submit_file_name = str(config.SUBMISSION_PATH /'tgsv1') + str(fold) + '.csv'
+    submit.to_csv(submit_file_name, index=False)
     print('========finished=========')
 
     # threshold = 0.5
