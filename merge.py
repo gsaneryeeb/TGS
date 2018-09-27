@@ -11,36 +11,12 @@ import cv2
 import numpy as np
 from joblib import Parallel, delayed
 import config
+import pandas as pd
 
 from sklearn.metrics import jaccard_similarity_score
 
-def threshold(val_predictions, val_masks):
-    metric_by_threshold = []
-    for threshold in np.linspace(0, 1, 11): #(0.5, 0.55, 0.6, 0.65, 0.7, 0.75, 0.8, 0.85, 0.9, 0.95)
-        val_binary_prediction = (val_predictions > threshold).astype(int)
-        iou_values = []
-        for y_mask, p_mask in zip(val_masks, val_binary_prediction):
-            iou = jaccard_similarity_score(y_mask.flatten(), p_mask.flatten())
-            iou_values.append(iou)
-        iou_values = np.array(iou_values)
-        accuracies = [
-            np.mean(iou_values > iou_threshold)
-            for iou_threshold in np.linspace(0.5, 0.95, 10)
-        ]
-        print('Threshold: %.2f, Metric: %.5f' % (threshold, np.mean(accuracies)))
-        metric_by_threshold.append((np.mean(accuracies), threshold))
-    best_metric, best_threshold = max(metric_by_threshold)
-    return best_metric, best_threshold 
 
-def rle_encoding(x):
-    dots = np.where(x.T.flatten() == 1)[0]
-    run_lengths = []
-    prev = -2
-    for b in dots:
-        if (b > prev+1): run_lengths.extend((b + 1, 0))
-        run_lengths[-1] += 1
-        prev = b
-    return run_lengths
+
 
 # # TODO: 待完善
 # threshold = best_threshold
@@ -58,8 +34,10 @@ def rle_encoding(x):
 
 # 合并 fold 中的结果
 def merge(file_name):
-    result = np.zeros((num_folds, 101, 101))
     for fold in range(num_folds):
+        csv_path = file_name.parent.parent.parent 
+        print('csv_path',csv_path)
+        df = pd.read_csv()
 
 
 if __name__ == '__main__':

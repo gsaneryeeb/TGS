@@ -167,7 +167,8 @@ if __name__ == '__main__':
     submit = pd.DataFrame([test_file_list, all_fold_masks])
     submit.columns = ['id','mask']
     submit.to_csv(str(config.SUBMISSION_PATH / 'tgsv1' / str(fold)+'.csv'), index=False)
-    #sub
+    print('========finished=========')
+
     # threshold = 0.5
     # binary_prediction = (pred_maks > threshold).astype(int)
     
