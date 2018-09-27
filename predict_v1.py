@@ -168,10 +168,11 @@ if __name__ == '__main__':
     for p_mask in list(binary_prediction):
         p_mask = rle_encoding(p_mask)
         all_fold_masks.append(' '.join(map(str, p_mask)))
-    submit = pd.DataFrame([test_file_list, all_fold_masks]).T
+    submit = pd.DataFrame([test_file_list, pred_maks]).T
+    # submit = pd.DataFrame([test_file_list, all_fold_masks]).T
     submit.columns = ['id','rle_mask']
     submit_file_name = 'submit_'+str(fold)+'.csv'
-    submit.to_csv(submit_file_name, index=False)
+    submit.to_csv(str(config.SUBMISSION_PATH / 'tgsv1' / str(fold)+'.csv'), index=False)
     # submit = pd.DataFrame([test_images,pred_maks]).T
     # submit.columns = ['id', 'mask']
     # submit_file_name = 'submit_'+str(fold)+'.csv'
