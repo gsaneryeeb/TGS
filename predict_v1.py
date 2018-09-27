@@ -20,7 +20,7 @@ import torch
 from torch import nn
 from torch.utils.data import DataLoader
 import tqdm
-import glob
+
 
 
 class PredictionDatasetPure:
@@ -153,9 +153,9 @@ if __name__ == '__main__':
     # val_masks = task_v1.load_image(val_masks_path, mask=True)
 
     test_images = sorted(list((data_path / 'test'/ 'images').glob('*.png')))
-    test_path = data_path / 'test'
-    test_file_list = glob.glob(os.path.join(test_path, 'images', '*.png'))
-    print('test_file_list=',test_file_list)
+    
+    test_file_list = [f.split('/')[-1].split('.')[0] for f in test_file_list] # 只获取文件名
+    print('test_file_list=',test_file_list[:3])
     num_test = len(test_images)
     pred_maks = predict(model, test_images, batch_size, test_path)
     
@@ -167,7 +167,7 @@ if __name__ == '__main__':
     for p_mask in list(binary_prediction):
         p_mask = rle_encoding(p_mask)
         all_fold_masks.append(' '.join(map(str, p_mask)))
-    submit = pd.DataFrame([test_images, all_fold_masks]).T
+    submit = pd.DataFrame([test_file_list, all_fold_masks]).T
     submit.columns = ['id','rle_mask']
     submit_file_name = 'submit_'+str(fold)+'.csv'
     submit.to_csv(submit_file_name, index=False)
