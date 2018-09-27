@@ -48,7 +48,7 @@ def get_model(model_name):
 
 
 def predict(model, from_paths, batch_size: int, to_path):
-    print('from_paths:'from_paths)
+    print('from_paths:',from_paths)
     all_predictions = []
     loader = DataLoader(
         dataset=PredictionDatasetPure(from_paths),
