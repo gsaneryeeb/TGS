@@ -94,7 +94,7 @@ def predict(model, from_paths, batch_size: int, to_path):
     # print("all_prediction:", all_predictions)
     all_predictions_stacked = np.vstack(all_predictions)[:, 0, :, :]  # 降维
     all_predictions_stacked = all_predictions_stacked[:, y_min_pad:128 - y_max_pad, x_min_pad:128 - x_max_pad] # Padding 128x128 --> 101x101
-    print("all_preidction shape:", all_predictions_stacked.shape)
+    # print("all_preidction shape:", all_predictions_stacked.shape)
     return all_predictions_stacked
 
 if __name__ == '__main__':
@@ -131,17 +131,19 @@ if __name__ == '__main__':
     batch_size = 2
 
     model = get_model(model_name)
+    
+    val_masks_path = Path('.').absolute() / str(args.fold) / 'val' / 'masks'
+    print('fold mask path=', val_masks_path)
 
     val_images = sorted(list((Path(str(args.fold)) / 'val' / 'images').glob('*.png')))
     num_val = len(val_images)
     val_pred_masks = predict(model, val_images, batch_size, val_path)
-    print("val_pred_masks shape", val_pred_masks.shape) # shape(800,101,101)
+
+    val_masks = task_v1.load_image(val_masks_path, mask=True)
 
     test_images = sorted(list((data_path / 'test'/ 'images').glob('*.png')))
     num_test = len(test_images)
-    print("num_test:",num_test)
     pred_maks = predict(model, test_images, batch_size, test_path)
-    print("pred_maks shape", pred_maks.shape) # shape(800,101,101)
     
 
 
