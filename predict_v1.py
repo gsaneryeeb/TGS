@@ -158,20 +158,22 @@ if __name__ == '__main__':
     test_file_list = [f.stem for f in test_images] # 只获取文件名
     num_test = len(test_images)
     pred_maks = predict(model, test_images, batch_size, test_path)
-    print('pred_maks:', pred_maks) 
-    #sub
-    threshold = 0.5
-    binary_prediction = (pred_maks > threshold).astype(int)
-    
-    all_fold_masks = []
-    for p_mask in list(binary_prediction):
-        p_mask = rle_encoding(p_mask)
-        all_fold_masks.append(' '.join(map(str, p_mask)))
-    submit = pd.DataFrame([test_file_list, pred_maks])
-    # submit = pd.DataFrame([test_file_list, all_fold_masks]).T
-    submit.columns = ['id','rle_mask']
-    submit_file_name = 'submit_'+str(fold)+'.csv'
+
+    submit = pd.DataFrame([test_file_list, list(pred_maks)])
+    submit.columns = ['id','mask']
     submit.to_csv(str(config.SUBMISSION_PATH / 'tgsv1' / str(fold)+'.csv'), index=False)
+    #sub
+    # threshold = 0.5
+    # binary_prediction = (pred_maks > threshold).astype(int)
+    
+    # all_fold_masks = []
+    # for p_mask in list(binary_prediction):
+    #     p_mask = rle_encoding(p_mask)
+    #     all_fold_masks.append(' '.join(map(str, p_mask)))
+    # submit = pd.DataFrame([test_file_list, all_fold_masks]).T
+    # submit.columns = ['id','rle_mask']
+    # submit_file_name = 'submit_'+str(fold)+'.csv'
+    # submit.to_csv(str(config.SUBMISSION_PATH / 'tgsv1' / str(fold)+'.csv'), index=False)
     # submit = pd.DataFrame([test_images,pred_maks]).T
     # submit.columns = ['id', 'mask']
     # submit_file_name = 'submit_'+str(fold)+'.csv'
