@@ -158,7 +158,7 @@ if __name__ == '__main__':
     
     #sub
     threshold = 0.5
-    binary_prediction = (all_predictions_stacked > threshold).astype(int)
+    binary_prediction = (pred_maks > threshold).astype(int)
     
     all_fold_masks = []
     for p_mask in list(binary_prediction):
