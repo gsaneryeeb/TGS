@@ -154,7 +154,7 @@ if __name__ == '__main__':
 
     test_images = sorted(list((data_path / 'test'/ 'images').glob('*.png')))
     
-    test_file_list = [f.split('/')[-1].split('.')[0] for f in test_images] # 只获取文件名
+    test_file_list = [f.stem for f in test_images] # 只获取文件名
     print('test_file_list=',test_file_list[:3])
     num_test = len(test_images)
     pred_maks = predict(model, test_images, batch_size, test_path)
