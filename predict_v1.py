@@ -12,7 +12,6 @@ from pathlib import Path
 import task_v1
 import config 
 import numpy as np
-import pandas as pd
 
 from utils.unet_vgg_utils import UNet11
 from utils import utils
@@ -153,13 +152,15 @@ if __name__ == '__main__':
     # val_masks = task_v1.load_image(val_masks_path, mask=True)
 
     test_images = sorted(list((data_path / 'test'/ 'images').glob('*.png')))
-    
+    test_path = data_path / 'test'
+    test_file_list = glob.glob(os.path.join(test_path, 'images', '*.png'))
+    print('test_file_list=',test_file_list)
     num_test = len(test_images)
     pred_maks = predict(model, test_images, batch_size, test_path)
     
     #sub
     threshold = 0.5
-    binary_prediction = (pred_maks > threshold).astype(int)
+    binary_prediction = (all_predictions_stacked > threshold).astype(int)
     
     all_fold_masks = []
     for p_mask in list(binary_prediction):
@@ -169,3 +170,6 @@ if __name__ == '__main__':
     submit.columns = ['id','rle_mask']
     submit_file_name = 'submit_'+str(fold)+'.csv'
     submit.to_csv(submit_file_name, index=False)
+    # submit = pd.DataFrame([test_images,pred_maks]).T
+    # submit.columns = ['id', 'mask']
+    # submit_file_name = 'submit_'+str(fold)+'.csv'
