@@ -48,6 +48,7 @@ def get_model(model_name):
 
 
 def predict(model, from_paths, batch_size: int, to_path):
+    print('from_paths:'from_paths)
     all_predictions = []
     loader = DataLoader(
         dataset=PredictionDatasetPure(from_paths),
@@ -139,7 +140,7 @@ if __name__ == '__main__':
     num_val = len(val_images)
     val_pred_masks = predict(model, val_images, batch_size, val_path)
 
-    val_masks = task_v1.load_image(val_masks_path, mask=True)
+    # val_masks = task_v1.load_image(val_masks_path, mask=True)
 
     test_images = sorted(list((data_path / 'test'/ 'images').glob('*.png')))
     num_test = len(test_images)
