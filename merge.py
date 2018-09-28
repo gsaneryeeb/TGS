@@ -37,7 +37,7 @@ def merge(file_name):
     for fold in range(num_folds):
         df_fold_name = str(config.SUBMISSION_PATH /'tgsv1'/ str(fold)) + '.csv'
         print('df_fold_name',df_fold_name) 
-        df = pd.read_csv(df_fold_name, header=None, sep=' ')
+        df = pd.read_csv(df_fold_name, header=None, sep=',')
         print(df.head())
 
 
