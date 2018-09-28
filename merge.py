@@ -34,12 +34,13 @@ from sklearn.metrics import jaccard_similarity_score
 
 # 合并 fold 中的结果
 def merge(file_name):
+    result = np.zeros((num_folds, 101, 101))
     for fold in range(num_folds):
         df_fold_name = str(config.SUBMISSION_PATH /'tgsv1'/ str(fold)) + '.csv'
-        print('df_fold_name',df_fold_name) 
         df = pd.read_csv(df_fold_name, sep=',')
-        print(df[df['id'].isin([file_name.stem])])
-
+        result[fold] = df[df['id'].isin([file_name.stem])]['mask']
+    
+    print('result:',result)
 
 if __name__ == '__main__':
     print("====Merge===")
