@@ -51,5 +51,6 @@ if __name__ == '__main__':
     (config.SUBMISSION_PATH / 'tgsv1').mkdir(exist_ok=True, parents=True)
 
     # Parallel(n_jobs=16)(delayed(merge)(x) for x in test_images)
-    merge(x) for x in test_images
+    for x in test_images
+        merge(x)
 
