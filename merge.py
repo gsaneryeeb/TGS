@@ -40,7 +40,7 @@ def merge(file_name):
         df = pd.read_csv(df_fold_name, sep=',')
         result[fold] = df[df['id'].isin([file_name.stem])]['mask']
     
-    print('result:',result)
+    print('result:',result.mean(axis=0).astype(np.float32))
 
 if __name__ == '__main__':
     print("====Merge===")
