@@ -144,7 +144,7 @@ if __name__ == '__main__':
     model = get_model(model_name)
     
     val_masks_path = Path('.').absolute() / str(args.fold) / 'val' / 'masks'
-    print('fold mask path=', val_masks_path)
+    # print('fold mask path=', val_masks_path)
 
     val_images = sorted(list((Path(str(args.fold)) / 'val' / 'images').glob('*.png')))
     num_val = len(val_images)
@@ -166,7 +166,7 @@ if __name__ == '__main__':
 
     submit = pd.DataFrame([test_file_list, all_fold_masks]).T
     submit.columns = ['id','mask']
-    submit_file_name = str(config.SUBMISSION_PATH /'tgsv1') + str(fold) + '.csv'
+    submit_file_name = str(config.SUBMISSION_PATH /'tgsv1'/ str(fold)) + '.csv'
     submit.to_csv(submit_file_name, index=False)
     print('========finished=========')
 
