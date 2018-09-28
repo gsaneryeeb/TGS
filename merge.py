@@ -38,7 +38,7 @@ def merge(file_name):
         df_fold_name = str(config.SUBMISSION_PATH /'tgsv1'/ str(fold)) + '.csv'
         print('df_fold_name',df_fold_name) 
         df = pd.read_csv(df_fold_name, header=None, sep=',')
-        print(df.head())
+        print(df[df['id'].isin([file_name.stem])])
 
 
 if __name__ == '__main__':
