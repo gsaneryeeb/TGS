@@ -159,8 +159,11 @@ if __name__ == '__main__':
     num_test = len(test_images)
     pred_maks = predict(model, test_images, batch_size, test_path)
 
+    pred_image = (pred_maks * 255).astype(uint8)
+    print('pred image', pred_image)
+
     all_fold_masks = []
-    for p_mask in list(pred_maks):
+    for p_mask in list(pred_image):
         all_fold_masks.append(' '.join(map(str, p_mask)))
 
 

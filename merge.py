@@ -38,7 +38,7 @@ def merge(file_name):
     for fold in range(num_folds):
         df_fold_name = str(config.SUBMISSION_PATH /'tgsv1'/ str(fold)) + '.csv'
         df = pd.read_csv(df_fold_name, sep=',')
-        image = df[df['id'].isin([file_name.stem])].replace('\n', '')
+        image = df[df['id'].isin([file_name.stem])]
         result[fold] = image['mask']
         print('image:',result[fold])
     
