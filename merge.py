@@ -38,8 +38,9 @@ def merge(file_name):
     for fold in range(num_folds):
         df_fold_name = str(config.SUBMISSION_PATH /'tgsv1'/ str(fold)) + '.csv'
         df = pd.read_csv(df_fold_name, sep=',')
-        print(df[df['id'].isin([file_name.stem])])
-        result[fold] = df[df['id'].isin([file_name.stem])][[1]]
+        image = df[df['id'].isin([file_name.stem])]
+        result[fold] = image['mask']
+        print('image:',result[fold])
     
     print('result:',result.mean(axis=0).astype(np.float32))
 
