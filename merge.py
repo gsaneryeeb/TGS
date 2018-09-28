@@ -35,9 +35,9 @@ from sklearn.metrics import jaccard_similarity_score
 # 合并 fold 中的结果
 def merge(file_name):
     for fold in range(num_folds):
-        csv_path = file_name.parent.parent.parent 
-        print('csv_path',csv_path)
-        df = pd.read_csv(str(str(csv_path) / (str(fold)+'.csv')), header=None, sep=',')
+        df_fold_name = str(config.SUBMISSION_PATH /'tgsv1'/ str(fold)) + '.csv'
+        print('df_fold_name',df_fold_name) 
+        df = pd.read_csv(df_fold_name, header=None, sep=' ')
         print(df.head())
 
 
