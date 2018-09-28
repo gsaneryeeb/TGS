@@ -40,7 +40,7 @@ def merge(file_name):
         df = pd.read_csv(df_fold_name, sep=',')
         
         image = df[df['id'].isin([file_name.stem])]
-        print(image['mask']）
+        print(image['mask'])
     #     result[fold] = image['mask']
     #     print('image:',result[fold])
     
